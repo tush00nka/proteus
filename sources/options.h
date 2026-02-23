@@ -4,13 +4,15 @@
 #pragma once
 
 class Options {
-public:
+private:
 	std::string address;
 	std::string port;
 	std::string role;
 	std::size_t i;
 	std::string lib;
-
+public:
 	Options(int argc, char ** argv);
 	// ~Options();
+	std::string GetRole() { return this->role; }
+	void SetRole(std::string role) { this->role = role; }
 };

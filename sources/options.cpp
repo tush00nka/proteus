@@ -46,4 +46,9 @@ Options::Options(int argc, char ** argv)
 		usage(programName);
 		exit(-1);
 	}
+
+	if (this->role.size() <= 0)
+	{
+		this->role = "Client";
+	}
 }
