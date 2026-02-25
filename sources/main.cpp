@@ -189,6 +189,7 @@ int main(int argc, char ** argv)
 		if (commands.find(command) == commands.end())
 		{
 			std::cout << "Unknown command! For list of available commands type 'help'\n";
+			continue;
 		}
 
 		commands[command](vec, commandArgs, opts);
