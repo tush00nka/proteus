@@ -1,7 +1,9 @@
 #include <any>
+#include <functional>
 #include <iostream>
 #include <sstream>
 #include <string>
+#include <unordered_map>
 #include <vector>
 
 #include "options.h"
@@ -131,32 +133,36 @@ public:
     }
 };
 
+using command = std::function<void(Vector4& vec, std::vector<std::string>& commandArgs, Options& opts)>;
+
+void inputType(Vector4& vec, std::vector<std::string>& commandArgs, Options& opts);
+void inputVec(Vector4& vec, std::vector<std::string>& commandArgs, Options& opts);
+void setRole(Vector4& vec, std::vector<std::string>& commandArgs, Options& opts);
+void quitProgram(Vector4& vec, std::vector<std::string>& commandArgs, Options& opts);
+void help(Vector4& vec, std::vector<std::string>& commandArgs, Options& opts);
+
 void clear()
 {
 	std::cout << "\033[2J\033[1;1H"; // clear the console
 }
 
-void help()
-{
-	clear();
-	std::cout << "\nAVAILABLE COMMANDS:\n";
-	std::cout << "quit\t\texit the application\n";
-	std::cout << "help\t\tshow this help\n";
-	std::cout << "role [ROLE NAME]\tset role for user\n";
-	std::cout << "type [TYPE NAME]\tset type of vector\n";
-	std::cout << "vec X Y Z W\tset values for a 4D vector\n";
-	std::cout << "\nSUPPORTED TYPES:\n";
-	std::cout << "\tint, uint\n\tfloat, double\n\tchar, string\n\tbool\n";
-}
+const std::string supportedTypes[] = {"int",   "uint",
+								      "float", "double",
+									  "char",  "string",
+									  "bool"};
 
 int main(int argc, char ** argv)
 {	
 	Options opts = Options(argc, argv); 
 	Vector4 vec {};
-	std::string supportedTypes[] = {"int", "uint",
-								    "float", "double",
-									"char", "string",
-									"bool"};
+
+	std::unordered_map<std::string, command> commands = {
+		{"quit", quitProgram},
+		{"help", help},
+		{"role", setRole},
+		{"type", inputType},
+		{"vec", inputVec},
+	};
 
 	while(1)
 	{
@@ -180,92 +186,100 @@ int main(int argc, char ** argv)
 
 		std::string command = commandArgs[0];
 
-		if (command == "quit" || command == "q")
+		if (commands.find(command) == commands.end())
 		{
-			break;
+			std::cout << "Unknown command! For list of available commands type 'help'\n";
 		}
 
-		if (command == "help")
-		{
-			help();
-			continue;
-		}
-
-		if (command == "role")
-		{
-			if (commandArgs.size() <= 1)
-			{
-				std::cout << "Currently set role: " << opts.GetRole() << "\n"; 
-				continue;
-			}
-
-			std::string role = commandArgs[1];
-
-			opts.SetRole(role);
-			continue;
-		}
-
-		if (command == "type")
-		{
-			if (commandArgs.size() <= 1)
-			{
-				std::cout << "Currently set type: " << vec.GetType() << "\n"; 
-				continue;
-			}
-
-			std::string type = commandArgs[1];
-
-			bool supported = false;
-			for (std::string t : supportedTypes)
-			{
-				if (t == type)
-				{
-					supported = true;
-					break;
-				}
-			}
-
-			if (supported)
-			{
-				vec.SetType(type);
-				std::cout << "Set type: " << type << "\n"; 
-			}
-			else
-			{
-				std::cout << "Unknown type! Supported types are:\n"; 
-				for (const auto& t : supportedTypes) {
-                    std::cout << "  " << t << "\n";
-                }
-			}
-
-			continue;
-		}
-
-		if (command == "vec")
-		{
-			if (commandArgs.size() == 1)
-			{
-				vec.print();
-				continue;
-			}
-
-			if (commandArgs.size() < 5)
-			{
-				std::cout << "Not enough arguments!\n";
-				continue; 
-			}
-
-			if (vec.SetData(commandArgs[1], commandArgs[2], commandArgs[3], commandArgs[4]))
-			{
-				std::cout << "Vector data updated!\n";
-				vec.print();
-			}
-
-			continue;
-		}
-
-		std::cout << "Unknown command! For list of available commands type 'help'\n";
+		commands[command](vec, commandArgs, opts);
 	}
 
 	return 0;
+}
+
+
+void inputType(Vector4& vec, std::vector<std::string>& commandArgs, Options& opts)
+{
+	if (commandArgs.size() <= 1)
+	{
+		std::cout << "Currently set type: " << vec.GetType() << "\n"; 
+		return;
+	}
+
+	std::string type = commandArgs[1];
+
+	bool supported = false;
+	for (std::string t : supportedTypes)
+	{
+		if (t == type)
+		{
+			supported = true;
+			break;
+		}
+	}
+
+	if (supported)
+	{
+		vec.SetType(type);
+		std::cout << "Set type: " << type << "\n"; 
+	}
+	else
+	{
+		std::cout << "Unknown type! Supported types are:\n"; 
+		for (const auto& t : supportedTypes) {
+			std::cout << "  " << t << "\n";
+		}
+	}
+}
+
+void inputVec(Vector4& vec, std::vector<std::string>& commandArgs, Options& opts)
+{
+	if (commandArgs.size() == 1)
+	{
+		vec.print();
+		return;
+	}
+
+	if (commandArgs.size() < 5)
+	{
+		std::cout << "Not enough arguments!\n";
+		return; 
+	}
+
+	if (vec.SetData(commandArgs[1], commandArgs[2], commandArgs[3], commandArgs[4]))
+	{
+		std::cout << "Vector data updated!\n";
+		vec.print();
+	}
+}
+
+void help(Vector4& vec, std::vector<std::string>& commandArgs, Options& opts)
+{
+	clear();
+	std::cout << "\nAVAILABLE COMMANDS:\n";
+	std::cout << "quit\t\texit the application\n";
+	std::cout << "help\t\tshow this help\n";
+	std::cout << "role [ROLE NAME]\tset role for user\n";
+	std::cout << "type [TYPE NAME]\tset type of vector\n";
+	std::cout << "vec X Y Z W\tset values for a 4D vector\n";
+	std::cout << "\nSUPPORTED TYPES:\n";
+	std::cout << "\tint, uint\n\tfloat, double\n\tchar, string\n\tbool\n";
+}
+
+void quitProgram(Vector4& vec, std::vector<std::string>& commandArgs, Options& opts)
+{
+	exit(0);
+}
+
+void setRole(Vector4& vec, std::vector<std::string>& commandArgs, Options& opts)
+{
+	if (commandArgs.size() <= 1)
+	{
+		std::cout << "Currently set role: " << opts.GetRole() << "\n"; 
+		return;
+	}
+
+	std::string role = commandArgs[1];
+
+	opts.SetRole(role);	
 }
