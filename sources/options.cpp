@@ -1,54 +1,59 @@
+#include <iostream>
+#include <span>
 #include "options.h"
 #include "utils.h"
 
-Options::Options(int argc, char ** argv)
+Options::Options(int argc, char ** argv) : _status(0), _should_exit(false)
 {
 	for (int i = 1; i < argc; ++i)
 	{
-		std::string arg = argv[i];
+		auto args = std::span(argv, argc);
+		std::string arg = args[i];
 		if (arg == "-a")
 		{
-			this->address = argv[i+1];
+			this->_address = args[i+1];
 			i++;
 			continue;
 		}
 
 		if (arg == "-p")
 		{
-			this->port = argv[i+1];
+			this->_port = args[i+1];
 			i++;
 			continue;
 		}
 
 		if (arg == "-r")
 		{
-			this->role = argv[i+1];
+			this->_role = args[i+1];
 			i++;
 			continue;
 		}	
 
 		if (arg == "-i")
 		{
-			this->i = std::stoi(argv[i+1]);
+			this->_index = std::stoi(args[i+1]);
 			i++;
 			continue;
 		}
 
 		if (arg == "-L")
 		{
-			this->lib = argv[i+1];
+			this->_lib = args[i+1];
 			i++;
 			continue;
 		}
 
 		std::cout << "ERROR: Unknown option: " << arg << "\n";
-		std::string programName = argv[0];
-		usage(programName);
-		exit(-1);
+		std::string program_name = args[0];
+		usage(program_name);
+	
+		_should_exit = true;
+		_status = 1;
 	}
 
-	if (this->role.size() <= 0)
+	if (this->_role.size() <= 0)
 	{
-		this->role = "Client";
+		this->_role = "Client";
 	}
 }
