@@ -1,21 +1,25 @@
 #include <any>
+#include <array>
 #include <functional>
 #include <iostream>
 #include <sstream>
 #include <string>
 #include <unordered_map>
+#include <utility>
 #include <vector>
 
 #include "options.h"
 #include "utils.h"
 
+using std::string;
+
 class Vector4 {
 private:
-	std::string type;
-	std::any x;
-	std::any y;
-	std::any z;
-	std::any w;
+	std::string _type;
+	std::any _x;
+	std::any _y;
+	std::any _z;
+	std::any _w;
 
 	// helper function to convert to any supported type
 	template<typename T>
@@ -37,8 +41,7 @@ private:
             return str[0];
         }
         else if constexpr (std::is_same_v<T, bool>) {
-            if (str == "true" || str == "1" || str == "yes") return true;
-            return false;
+            return str == "true" || str == "1" || str == "yes";
         }
         else if constexpr (std::is_same_v<T, std::string>) {
             return str;
@@ -48,79 +51,79 @@ private:
         }
     }
 public:
-	Vector4(): type("int"), x(0), y(0), z(0), w(0) {};
+	Vector4(): _type("int"), _x(0), _y(0), _z(0), _w(0) {};
 
-	std::string GetType()
+	std::string getType()
 	{
-		return this->type;
+		return this->_type;
 	}
-	void SetType(std::string type)
+	void setType(std::string type)
 	{
-		this->type = type;
-		SetData("0", "0", "0", "0");
+		this->_type = std::move(type);
+		setData("0", "0", "0", "0");
 	}
 
 	void print()
 	{
-		std::cout << "(" << this->x << ", " << this->y << ", " << this->z << ", " << this->w << ")\n";
+		std::cout << "(" << this->_x << ", " << this->_y << ", " << this->_z << ", " << this->_w << ")\n";
 	}
 
-    bool SetData(const std::string& xStr, const std::string& yStr, const std::string& zStr, const std::string& wStr)
+    bool setData(const std::string& xStr, const std::string& yStr, const std::string& zStr, const std::string& wStr)
 	{
         try
 		{
-            if (type == "int")
+            if (_type == "int")
 			{
-                x = convertTo<int>(xStr);
-                y = convertTo<int>(yStr);
-                z = convertTo<int>(zStr);
-                w = convertTo<int>(wStr);
+                _x = convertTo<int>(xStr);
+                _y = convertTo<int>(yStr);
+                _z = convertTo<int>(zStr);
+                _w = convertTo<int>(wStr);
             }
-            else if (type == "uint")
+            else if (_type == "uint")
 			{
-                x = convertTo<unsigned int>(xStr);
-                y = convertTo<unsigned int>(yStr);
-                z = convertTo<unsigned int>(zStr);
-                w = convertTo<unsigned int>(wStr);
+                _x = convertTo<unsigned int>(xStr);
+                _y = convertTo<unsigned int>(yStr);
+                _z = convertTo<unsigned int>(zStr);
+                _w = convertTo<unsigned int>(wStr);
             }
-            else if (type == "float")
+            else if (_type == "float")
 			{
-                x = convertTo<float>(xStr);
-                y = convertTo<float>(yStr);
-                z = convertTo<float>(zStr);
-                w = convertTo<float>(wStr);
+                _x = convertTo<float>(xStr);
+                _y = convertTo<float>(yStr);
+                _z = convertTo<float>(zStr);
+                _w = convertTo<float>(wStr);
             }
-            else if (type == "double")
+            else if (_type == "double")
 			{
-                x = convertTo<double>(xStr);
-                y = convertTo<double>(yStr);
-                z = convertTo<double>(zStr);
-                w = convertTo<double>(wStr);
+                _x = convertTo<double>(xStr);
+                _y = convertTo<double>(yStr);
+                _z = convertTo<double>(zStr);
+                _w = convertTo<double>(wStr);
             }
-            else if (type == "char")
+            else if (_type == "char")
 			{
-                x = convertTo<char>(xStr);
-                y = convertTo<char>(yStr);
-                z = convertTo<char>(zStr);
-                w = convertTo<char>(wStr);
+                _x = convertTo<char>(xStr);
+                _y = convertTo<char>(yStr);
+                _z = convertTo<char>(zStr);
+                _w = convertTo<char>(wStr);
             }
-            else if (type == "string")
+            else if (_type == "string")
 			{
-                x = convertTo<std::string>(xStr);
-                y = convertTo<std::string>(yStr);
-                z = convertTo<std::string>(zStr);
-                w = convertTo<std::string>(wStr);
+                _x = convertTo<std::string>(xStr);
+                _y = convertTo<std::string>(yStr);
+                _z = convertTo<std::string>(zStr);
+                _w = convertTo<std::string>(wStr);
             }
-            else if (type == "bool")
+            else if (_type == "bool")
 			{
-                x = convertTo<bool>(xStr);
-                y = convertTo<bool>(yStr);
-                z = convertTo<bool>(zStr);
-                w = convertTo<bool>(wStr);
+                _x = convertTo<bool>(xStr);
+                _y = convertTo<bool>(yStr);
+                _z = convertTo<bool>(zStr);
+                _w = convertTo<bool>(wStr);
             }
             else
 			{
-                std::cout << "Unsupported type: " << type << "\n";
+                std::cout << "Unsupported type: " << _type << "\n";
                 return false;
             }
             return true;
@@ -135,21 +138,29 @@ public:
 
 using command = std::function<void(Vector4& vec, std::vector<std::string>& commandArgs, Options& opts)>;
 
-void inputType(Vector4& vec, std::vector<std::string>& commandArgs, Options& opts);
-void inputVec(Vector4& vec, std::vector<std::string>& commandArgs, Options& opts);
-void setRole(Vector4& vec, std::vector<std::string>& commandArgs, Options& opts);
-void quitProgram(Vector4& vec, std::vector<std::string>& commandArgs, Options& opts);
-void help(Vector4& vec, std::vector<std::string>& commandArgs, Options& opts);
+static void inputType(Vector4& vec, std::vector<std::string>& commandArgs, Options& opts);
+static void inputVec(Vector4& vec, std::vector<std::string>& commandArgs, Options& opts);
+static void setRole(Vector4& vec, std::vector<std::string>& commandArgs, Options& opts);
+static void quitProgram(Vector4& vec, std::vector<std::string>& commandArgs, Options& opts);
+static void help(Vector4& vec, std::vector<std::string>& commandArgs, Options& opts);
 
-void clear()
+static void clear()
 {
 	std::cout << "\033[2J\033[1;1H"; // clear the console
 }
 
-const std::string supportedTypes[] = {"int",   "uint",
-								      "float", "double",
-									  "char",  "string",
-									  "bool"};
+enum class SupportedTypes: std::uint8_t {
+	Int,
+	Uint,
+	Float,
+	Double,
+	Char,
+	String,
+	Bool	
+};
+
+const std::array<std::string, 7> kSupportedTypes = {"int",  "uint",   "float", "double",
+                                  "char", "string", "bool"};
 
 int main(int argc, char ** argv)
 {	
@@ -164,53 +175,54 @@ int main(int argc, char ** argv)
 		{"vec", inputVec},
 	};
 
-	while(1)
+
+	while(!opts.getShouldExit())
 	{
-		std::cout << opts.GetRole() <<" > ";
+		std::cout << opts.getRole() <<" > ";
 
 		std::string line;
 		std::getline(std::cin, line);
 		
-		std::vector<std::string> commandArgs;
+		std::vector<std::string> command_args;
 		std::string arg;
 		std::istringstream iss(line); 
 		while (iss >> arg)
 		{
-			commandArgs.push_back(arg);
+			command_args.push_back(arg);
 		}
 
-		if (commandArgs.empty())
+		if (command_args.empty())
 		{
 			continue;
 		}
 
-		std::string command = commandArgs[0];
+		std::string command = command_args[0];
 
-		if (commands.find(command) == commands.end())
+		if (!commands.contains(command))
 		{
 			std::cout << "Unknown command! For list of available commands type 'help'\n";
 			continue;
 		}
 
-		commands[command](vec, commandArgs, opts);
+		commands[command](vec, command_args, opts);
 	}
 
-	return 0;
+	return opts.getStatus();
 }
 
 
-void inputType(Vector4& vec, std::vector<std::string>& commandArgs, Options& opts)
+void inputType(Vector4& vec, std::vector<std::string>& commandArgs, Options&  /*opts*/)
 {
 	if (commandArgs.size() <= 1)
 	{
-		std::cout << "Currently set type: " << vec.GetType() << "\n"; 
+		std::cout << "Currently set type: " << vec.getType() << "\n"; 
 		return;
 	}
 
-	std::string type = commandArgs[1];
+	const std::string& type = commandArgs[1];
 
 	bool supported = false;
-	for (std::string t : supportedTypes)
+	for (const std::string& t : kSupportedTypes)
 	{
 		if (t == type)
 		{
@@ -221,19 +233,21 @@ void inputType(Vector4& vec, std::vector<std::string>& commandArgs, Options& opt
 
 	if (supported)
 	{
-		vec.SetType(type);
+		vec.setType(type);
 		std::cout << "Set type: " << type << "\n"; 
 	}
 	else
 	{
 		std::cout << "Unknown type! Supported types are:\n"; 
-		for (const auto& t : supportedTypes) {
+		for (const auto& t : kSupportedTypes) {
 			std::cout << "  " << t << "\n";
 		}
 	}
 }
 
-void inputVec(Vector4& vec, std::vector<std::string>& commandArgs, Options& opts)
+const size_t kInputVectorArgc = 5; 
+
+void inputVec(Vector4& vec, std::vector<std::string>& commandArgs, Options&  /*opts*/)
 {
 	if (commandArgs.size() == 1)
 	{
@@ -241,20 +255,19 @@ void inputVec(Vector4& vec, std::vector<std::string>& commandArgs, Options& opts
 		return;
 	}
 
-	if (commandArgs.size() < 5)
-	{
+	if (kInputVectorArgc > commandArgs.size()) {
 		std::cout << "Not enough arguments!\n";
-		return; 
+		return;
 	}
 
-	if (vec.SetData(commandArgs[1], commandArgs[2], commandArgs[3], commandArgs[4]))
+        if (vec.setData(commandArgs[1], commandArgs[2], commandArgs[3], commandArgs[4]))
 	{
 		std::cout << "Vector data updated!\n";
 		vec.print();
 	}
 }
 
-void help(Vector4& vec, std::vector<std::string>& commandArgs, Options& opts)
+void help(Vector4&  /*vec*/, std::vector<std::string>&  /*commandArgs*/, Options&  /*opts*/)
 {
 	clear();
 	std::cout << "\nAVAILABLE COMMANDS:\n";
@@ -267,20 +280,20 @@ void help(Vector4& vec, std::vector<std::string>& commandArgs, Options& opts)
 	std::cout << "\tint, uint\n\tfloat, double\n\tchar, string\n\tbool\n";
 }
 
-void quitProgram(Vector4& vec, std::vector<std::string>& commandArgs, Options& opts)
+void quitProgram(Vector4&  /*vec*/, std::vector<std::string>&  /*commandArgs*/, Options&  opts)
 {
-	exit(0);
+	opts.setShouldExit();
 }
 
-void setRole(Vector4& vec, std::vector<std::string>& commandArgs, Options& opts)
+void setRole(Vector4&  /*vec*/, std::vector<std::string>& commandArgs, Options& opts)
 {
 	if (commandArgs.size() <= 1)
 	{
-		std::cout << "Currently set role: " << opts.GetRole() << "\n"; 
+		std::cout << "Currently set role: " << opts.getRole() << "\n"; 
 		return;
 	}
 
-	std::string role = commandArgs[1];
+	const std::string& role = commandArgs[1];
 
-	opts.SetRole(role);	
+	opts.setRole(role);	
 }
