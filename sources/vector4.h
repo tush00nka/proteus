@@ -1,5 +1,6 @@
 #pragma once
 
+#include "console_interface.h"
 #include <any>
 #include <string>
 #include <array>
@@ -37,6 +38,6 @@ public:
 		setData("0", "0", "0", "0");
 	}
 
-	void print();
+	void print(IConsole& console);
     bool setData(const std::string& xStr, const std::string& yStr, const std::string& zStr, const std::string& wStr);
 };

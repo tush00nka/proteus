@@ -1,7 +1,9 @@
 #include "vector4.h"
+#include "console_interface.h"
 #include "utils.h"
 
 #include <iostream>
+#include <sstream>
 #include <string>
 #include <algorithm>
 
@@ -48,9 +50,11 @@ std::array<std::string, kSupportedTypesSize> Vector4::getSupporedTypes() const
 	return this->_supported_types;
 }
 
-void Vector4::print()
+void Vector4::print(IConsole& console)
 {
-	std::cout << "(" << this->_x << ", " << this->_y << ", " << this->_z << ", " << this->_w << ")\n";
+	std::ostringstream oss;
+    oss << "(" << this->_x << ", " << this->_y << ", " << this->_z << ", " << this->_w << ")";
+    console.printLine(oss.str());
 }
 
 bool Vector4::setData(const std::string& xStr, const std::string& yStr, const std::string& zStr, const std::string& wStr)
