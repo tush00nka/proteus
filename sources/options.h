@@ -18,11 +18,11 @@ private:
 public:
 	Options(int argc, char ** argv);
 	void errorWithMessage(const std::string& program_name, const std::string& arg);
-	// ~Options();
-	std::string getRole() { return this->_role; }
-	[[nodiscard]] bool getShouldExit() const { return this->_should_exit; }
 
+	[[nodiscard]] std::string getRole() { return this->_role; }
 	void setRole(std::string role) { this->_role = std::move(role); }
+
+	[[nodiscard]] bool getShouldExit() const { return this->_should_exit; }
 	void setShouldExit() { this->_should_exit = !this->_should_exit; }
 	
 	[[nodiscard]] int getStatus() const { return this->_status; }
