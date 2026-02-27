@@ -24,8 +24,8 @@ std::ostream& operator<<(std::ostream& os, const std::any& value) {
     if (value.type() == typeid(unsigned int)) {
         return os << std::any_cast<unsigned int>(value);
     }
-    if (value.type() == typeid(long)) {
-        return os << std::any_cast<long>(value);
+    if (value.type() == typeid(std::int64_t)) {
+        return os << std::any_cast<std::int64_t>(value);
     }
     if (value.type() == typeid(float)) {
         return os << std::any_cast<float>(value);
