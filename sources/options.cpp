@@ -1,7 +1,26 @@
 #include <iostream>
 #include <span>
 #include "options.h"
-#include "utils.h"
+
+void Options::usage(const std::string &program_name)
+{
+	std::cout << "USAGE:\n";
+	std::cout << program_name << " [OPTIONS]" << "\n";
+	std::cout << "\t" << "-a ADDRESS" << "\n";
+	std::cout << "\t" << "-p PORT" << "\n";
+	std::cout << "\t" << "-r ROLE" << "\n";
+	std::cout << "\t" << "-i INDEX" << "\n";
+	std::cout << "\t" << "-L LIB" << "\n";
+}
+
+void Options::errorWithMessage(const std::string& program_name, const std::string& arg)
+{
+	std::cout << "ERROR: Flag '" << arg << "' doesn't seem to have a valid option set!" << "\n";
+	usage(program_name);
+
+	_should_exit = true;
+	_status = 1;
+}
 
 Options::Options(int argc, char ** argv) : _status(0), _should_exit(false)
 {
@@ -9,6 +28,20 @@ Options::Options(int argc, char ** argv) : _status(0), _should_exit(false)
 	{
 		auto args = std::span(argv, argc);
 		std::string arg = args[i];
+		
+		if (i+1 >= argc)
+		{
+			errorWithMessage(args[0], arg);
+			break;
+		}
+
+		std::string next_arg = args[i+1];
+		if(next_arg.starts_with('-'))
+		{
+			errorWithMessage(args[0], arg);
+			break;
+		}
+
 		if (arg == "-a")
 		{
 			this->_address = args[i+1];
@@ -50,6 +83,7 @@ Options::Options(int argc, char ** argv) : _status(0), _should_exit(false)
 	
 		_should_exit = true;
 		_status = 1;
+		break;
 	}
 
 	if (this->_role.size() <= 0)

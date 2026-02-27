@@ -13,8 +13,11 @@ private:
 
 	bool _should_exit;
 	int _status;
+
+	static void usage(const std::string &program_name);
 public:
 	Options(int argc, char ** argv);
+	void errorWithMessage(const std::string& program_name, const std::string& arg);
 	// ~Options();
 	std::string getRole() { return this->_role; }
 	[[nodiscard]] bool getShouldExit() const { return this->_should_exit; }
