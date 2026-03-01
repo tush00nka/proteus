@@ -22,6 +22,7 @@ private:
 
 public:
 	Vector4();
+	explicit Vector4(std::string type);
 
 	bool supportsType(const std::string& type);
 

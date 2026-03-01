@@ -8,6 +8,7 @@ add_executable(proteus
 	sources/application.cpp
     sources/options.cpp 
     sources/vector4.cpp
+	sources/data_pool.cpp
 	sources/utils.cpp
 )
 
@@ -19,6 +20,7 @@ add_executable(proteus_tests
 	sources/application.cpp
     sources/options.cpp 
     sources/vector4.cpp
+	sources/data_pool.cpp
 	sources/utils.cpp
 )
 
