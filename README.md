@@ -25,7 +25,8 @@ ctest ./proteus_tests
 
 # TODO:
 - [ ] Logging
-- [ ] Sanitizer
+- [+] CppCheck
+- [+] Address Sanitizer
 - [ ] ResourceTest
 - [ ] ConnectionTest
 - [ ] Class invariants
