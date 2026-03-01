@@ -1,8 +1,8 @@
-= Proteus
+# Proteus
 
 CLI application for Protei IT-School
 
-= Quick Start
+# Quick Start
 
 ```sh
 mkdir build && cd build
@@ -10,7 +10,7 @@ cmake .. && make
 ./proteus
 ```
 
-= Run Tests
+# Run Tests
 ```sh
 ./proteus_tests
 ```
@@ -19,11 +19,11 @@ or
 ctest ./proteus_tests
 ```
 
-= Crucial Parameters
+# Crucial Parameters
 - -a ADDRESS
 - -p PORT
 
-= TODO:
+# TODO:
 - [ ] Logging
 - [ ] Sanitizer
 - [ ] ResourceTest
