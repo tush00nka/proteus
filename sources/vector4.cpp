@@ -57,6 +57,14 @@ void Vector4::print(IConsole& console)
     console.printLine(oss.str());
 }
 
+std::string Vector4::sprint()
+{
+	std::ostringstream oss;
+    oss << "(" << this->_x << ", " << this->_y << ", " << this->_z << ", " << this->_w << ")";
+    return oss.str();
+}
+
+
 bool Vector4::setData(const std::string& xStr, const std::string& yStr, const std::string& zStr, const std::string& wStr)
 {
 	try
