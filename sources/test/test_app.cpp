@@ -85,17 +85,17 @@ TEST(ApplicationTest, SetVectorValues) {
     EXPECT_NE(vec_str.find("1.5"), std::string::npos);
 }
 
-TEST(ApplicationTest, ChangeRole) {
+TEST(ApplicationTest, ChangeUsername) {
     Options opts(0, nullptr);
     Vector4 vec;
     MockConsole console;
     
-    console.addInputLine("role admin");
+    console.addInputLine("username admin");
     console.addInputLine("quit");
     
     runApplication(opts, vec, console);
     
-    EXPECT_EQ(opts.getRole(), "admin");
+    EXPECT_EQ(opts.getUsername(), "admin");
 }
 
 TEST(ApplicationTest, UnknownCommand) {

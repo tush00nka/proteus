@@ -5,14 +5,14 @@ int runApplication(Options& opts, Vector4& vec, IConsole& console) {
 	std::unordered_map<std::string, command> commands = {
 		{"quit", quitProgram},
 		{"help", help},
-		{"role", setRole},
+		{"username", setUsername},
 		{"type", inputType},
 		{"vec", inputVec},
 	};
 
 	while(!opts.getShouldExit())
 	{
-		console.print(opts.getRole() + " > ");
+		console.print(opts.getUsername() + " > ");
 
 		std::string line = console.readLine();
 
@@ -93,7 +93,7 @@ void help(Vector4&  /*vec*/, std::vector<std::string>&  /*commandArgs*/, Options
 	console.printLine("\nAVAILABLE COMMANDS:");
 	console.printLine("quit\t\texit the application");
 	console.printLine("help\t\tshow this help");
-	console.printLine("role [ROLE NAME]\tset role for user");
+	console.printLine("username [USERNAME]\tset username");
 	console.printLine("type [TYPE NAME]\tset type of vector");
 	console.printLine("vec X Y Z W\tset values for a 4D vector");
 	console.printLine("\nSUPPORTED TYPES:");
@@ -105,15 +105,15 @@ void quitProgram(Vector4&  /*vec*/, std::vector<std::string>&  /*commandArgs*/, 
 	opts.setShouldExit();
 }
 
-void setRole(Vector4&  /*vec*/, std::vector<std::string>& commandArgs, Options& opts, IConsole& console)
+void setUsername(Vector4&  /*vec*/, std::vector<std::string>& commandArgs, Options& opts, IConsole& console)
 {
 	if (commandArgs.size() <= 1)
 	{
-		console.printLine("Currently set role: " + opts.getRole()); 
+		console.printLine("Currently set username: " + opts.getUsername()); 
 		return;
 	}
 
 	const std::string& role = commandArgs[1];
 
-	opts.setRole(role);	
+	opts.setUsername(role);	
 }

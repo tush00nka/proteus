@@ -11,6 +11,8 @@ private:
 	std::size_t _index;
 	std::string _lib;
 
+	std::string _username;
+
 	bool _should_exit;
 	int _status;
 
@@ -19,8 +21,8 @@ public:
 	Options(int argc, char ** argv);
 	void errorWithMessage(const std::string& program_name, const std::string& arg);
 
-	[[nodiscard]] std::string getRole() { return this->_role; }
-	void setRole(std::string role) { this->_role = std::move(role); }
+	[[nodiscard]] std::string getUsername() { return this->_username; }
+	void setUsername(std::string username) { this->_username = std::move(username); }
 
 	[[nodiscard]] bool getShouldExit() const { return this->_should_exit; }
 	void setShouldExit() { this->_should_exit = !this->_should_exit; }
