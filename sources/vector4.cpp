@@ -6,9 +6,15 @@
 #include <sstream>
 #include <string>
 #include <algorithm>
+#include <utility>
 
 Vector4::Vector4(): _type("int"), _x(0), _y(0), _z(0), _w(0) {
-		this->_supported_types = {"int",  "uint",   "float", "double", "char", "string", "bool"};
+	this->_supported_types = {"int",  "uint",   "float", "double", "char", "string", "bool"};
+}
+
+Vector4::Vector4(std::string type): _type(std::move(type)) {
+	this->_supported_types = {"int",  "uint",   "float", "double", "char", "string", "bool"};
+	this->setData("0", "0", "0", "0");
 }
 
 template<typename T>

@@ -1,13 +1,17 @@
 #include "application.h"
+#include "data_pool.h"
+#include "vector4.h"
 #include <sstream>
 
-int runApplication(Options& opts, Vector4& vec, IConsole& console) {
+int runApplication(Options& opts, DataPool& data, IConsole& console) {
 	std::unordered_map<std::string, command> commands = {
 		{"quit", quitProgram},
 		{"help", help},
 		{"username", setUsername},
 		{"type", inputType},
 		{"vec", inputVec},
+		{"add", addVec},
+		{"pop", popVec},
 	};
 
 	while(!opts.getShouldExit())
@@ -37,75 +41,132 @@ int runApplication(Options& opts, Vector4& vec, IConsole& console) {
 			continue;
 		}
 
-		commands[command](vec, command_args, opts, console);
+		commands[command](data, command_args, opts, console);
 	}
 
 	return opts.getStatus();
 }
 
-void inputType(Vector4& vec, std::vector<std::string>& commandArgs, Options&  /*opts*/, IConsole& console)
+void inputType(DataPool& data, std::vector<std::string>& commandArgs, Options&  /*opts*/, IConsole& console)
 {
 	if (commandArgs.size() <= 1)
 	{
-		console.printLine("Currently set type: " + vec.getType()); 
+		console.printLine("Currently set type: " + data.frontMut().getType()); 
 		return;
 	}
 
 	const std::string& type = commandArgs[1];
 
-	if (vec.supportsType(type))
+	if (data.frontMut().supportsType(type))
 	{
-		vec.setType(type);
+		data.frontMut().setType(type);
 		console.printLine("Set type: " + type);
 	}
 	else
 	{
 		console.printLine("Unknown type! Supported types are:"); 
-		for (const auto& t : vec.getSupporedTypes()) {
+		for (const auto& t : data.frontMut().getSupporedTypes()) {
 			console.printLine("  " + t);
 		}
 	}
 }
 
-void inputVec(Vector4& vec, std::vector<std::string>& commandArgs, Options&  /*opts*/, IConsole& console)
+void inputVec(DataPool& data, std::vector<std::string>& commandArgs, Options&  /*opts*/, IConsole& console)
 {
 	if (commandArgs.size() == 1)
 	{
-		vec.print(console);
+		data.frontMut().print(console);
 		return;
 	}
 
-	if (kInputVectorArgc > commandArgs.size()) {
+	if (kInputVectorArgc > commandArgs.size())
+	{
 		console.printLine("Not enough arguments!");
 		return;
 	}
 
-        if (vec.setData(commandArgs[1], commandArgs[2], commandArgs[3], commandArgs[4]))
+	if (data.frontMut().setData(commandArgs[1], commandArgs[2], commandArgs[3], commandArgs[4]))
 	{
 		console.printLine("Vector data updated!");
-		vec.print(console);
+		data.frontMut().print(console);
 	}
 }
 
-void help(Vector4&  /*vec*/, std::vector<std::string>&  /*commandArgs*/, Options&  /*opts*/, IConsole& console)
+void addVec(DataPool& data, std::vector<std::string>& commandArgs, Options&  /*opts*/, IConsole& console)
+{
+	if (kInputVectorArgc > commandArgs.size())
+	{
+		console.printLine("Not enough arguments!");
+		return;
+	}
+
+	std::string type;
+	size_t offset = 0; 
+	if (kAddVectorArgc > commandArgs.size())
+	{
+		type = data.frontMut().getType();
+	}
+	else
+	{	
+		type = commandArgs[1];
+		offset = 1;
+	}
+
+	data.push(Vector4());
+
+	if (data.frontMut().supportsType(type))
+	{
+		data.frontMut().setType(type);
+		console.printLine("Set type: " + type);
+	}
+	else
+	{
+		console.printLine("Unknown type! Supported types are:"); 
+		for (const auto& t : data.frontMut().getSupporedTypes()) {
+			console.printLine("  " + t);
+		}
+		return;
+	}
+
+	if (data.frontMut().setData(commandArgs[1+offset], commandArgs[2+offset], commandArgs[3+offset], commandArgs[4+offset]))
+	{
+		console.printLine("Vector of type " + data.frontMut().getType() + " has been added!");
+		data.frontMut().print(console);
+	}
+}
+
+void popVec(DataPool& data, std::vector<std::string>&  /*commandArgs*/, Options&  /*opts*/, IConsole& console)
+{
+	if (1 >= data.size())
+	{
+		console.printLine("Cannot pop the last vector from queue!");
+		return;
+	}
+
+	console.printLine("Popped vector" + data.frontMut().sprint() + " of type " + data.frontMut().getType());
+	data.pop();
+}
+
+void help(DataPool&  /*data*/, std::vector<std::string>&  /*commandArgs*/, Options&  /*opts*/, IConsole& console)
 {
 	clear(console);
 	console.printLine("\nAVAILABLE COMMANDS:");
 	console.printLine("quit\t\texit the application");
 	console.printLine("help\t\tshow this help");
 	console.printLine("username [USERNAME]\tset username");
-	console.printLine("type [TYPE NAME]\tset type of vector");
-	console.printLine("vec X Y Z W\tset values for a 4D vector");
+	console.printLine("type [TYPE NAME]\tset type of vector in front of the queue");
+	console.printLine("vec X Y Z W\tset values for a 4D vector in front of the queue");
+	console.printLine("add [TYPE] X Y Z W\tadd a 4D vector of TYPE to the queue");
 	console.printLine("\nSUPPORTED TYPES:");
 	console.printLine("\tint, uint\n\tfloat, double\n\tchar, string\n\tbool");
 }
 
-void quitProgram(Vector4&  /*vec*/, std::vector<std::string>&  /*commandArgs*/, Options&  opts, IConsole& /* console */)
+void quitProgram(DataPool&  /*data*/, std::vector<std::string>&  /*commandArgs*/, Options&  opts, IConsole& /* console */)
 {
 	opts.setShouldExit();
 }
 
-void setUsername(Vector4&  /*vec*/, std::vector<std::string>& commandArgs, Options& opts, IConsole& console)
+void setUsername(DataPool&  /*data*/, std::vector<std::string>& commandArgs, Options& opts, IConsole& console)
 {
 	if (commandArgs.size() <= 1)
 	{
