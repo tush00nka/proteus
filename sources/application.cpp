@@ -2,17 +2,41 @@
 #include "data_pool.h"
 #include "vector4.h"
 #include <sstream>
+#include <vector>
+
+MenuItem::MenuItem(command command) : _command(std::move(command)) {};
+
+bool MenuItem::execute(std::vector<std::string>& command_args, Options& opts, DataPool& data, IConsole& console)
+{
+	this->_command(data, command_args, opts, console);
+	return true;
+}
+
+Menu::Menu()
+{
+	this->_items = {
+		{"quit", MenuItem(quitProgram)},
+		{"help", MenuItem(help)},
+		{"username", MenuItem(setUsername)},
+		{"type", MenuItem(inputType)},
+		{"vec", MenuItem(inputVec)},
+		{"add", MenuItem(addVec)},
+		{"pop", MenuItem(popVec)},
+	};
+}
+
+bool Menu::exists(const std::string& command_text)
+{
+	return this->_items.contains(command_text);
+}
+
+bool Menu::execute(const std::string& command_text, std::vector<std::string>& command_args, Options& opts, DataPool& data, IConsole& console)
+{
+	return this->_items[command_text].execute(command_args, opts, data, console);
+}
 
 int runApplication(Options& opts, DataPool& data, IConsole& console) {
-	std::unordered_map<std::string, command> commands = {
-		{"quit", quitProgram},
-		{"help", help},
-		{"username", setUsername},
-		{"type", inputType},
-		{"vec", inputVec},
-		{"add", addVec},
-		{"pop", popVec},
-	};
+	Menu menu = Menu();
 
 	while(!opts.getShouldExit())
 	{
@@ -35,13 +59,13 @@ int runApplication(Options& opts, DataPool& data, IConsole& console) {
 
 		std::string command = command_args[0];
 
-		if (!commands.contains(command))
+		if (!menu.exists(command))
 		{
 			console.printLine("Unknown command! For list of available commands type 'help'");
 			continue;
 		}
 
-		commands[command](data, command_args, opts, console);
+		menu.execute(command, command_args, opts, data, console);
 	}
 
 	return opts.getStatus();
