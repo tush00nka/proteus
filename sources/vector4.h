@@ -39,5 +39,6 @@ public:
 	}
 
 	void print(IConsole& console);
+	std::string sprint();
     bool setData(const std::string& xStr, const std::string& yStr, const std::string& zStr, const std::string& wStr);
 };
