@@ -1,0 +1,206 @@
+sources/vector4.h:31:14: style: inconclusive: Technically the member function 'Vector4::getType' can be const. [functionConst]
+ std::string getType()
+             ^
+sources/options.h:24:28: style: inconclusive: Technically the member function 'Options::getUsername' can be const. [functionConst]
+ [[nodiscard]] std::string getUsername() { return this->_username; }
+                           ^
+sources/application.cpp:9:16: style: The member function 'MenuItem::execute' can be static. [functionStatic]
+bool MenuItem::execute(std::vector<std::string>& command_args, Options& opts, DataPool& data, IConsole& console)
+               ^
+sources/application.h:36:7: note: The member function 'MenuItem::execute' can be static.
+ bool execute(std::vector<std::string>& command_args, Options& opts, DataPool& data, IConsole& console);
+      ^
+sources/application.cpp:9:16: note: The member function 'MenuItem::execute' can be static.
+bool MenuItem::execute(std::vector<std::string>& command_args, Options& opts, DataPool& data, IConsole& console)
+               ^
+sources/application.cpp:35:43: style: Return value 'this->_items[command_text].execute(command_args,opts,data,console)' is always true [knownConditionTrueFalse]
+ return this->_items[command_text].execute(command_args, opts, data, console);
+                                          ^
+sources/application.cpp:35:43: note: Calling function 'execute' returns 1
+ return this->_items[command_text].execute(command_args, opts, data, console);
+                                          ^
+sources/application.cpp:35:43: note: Return value 'this->_items[command_text].execute(command_args,opts,data,console)' is always true
+ return this->_items[command_text].execute(command_args, opts, data, console);
+                                          ^
+sources/application.cpp:74:58: style: Parameter 'commandArgs' can be declared as reference to const. However it seems that 'inputType' is a callback function, if 'commandArgs' is declared with const you might also need to cast function pointer(s). [constParameterCallback]
+void inputType(DataPool& data, std::vector<std::string>& commandArgs, Options&  /*opts*/, IConsole& console)
+                                                         ^
+sources/application.cpp:21:21: note: You might need to cast the function pointer here
+  {"type", MenuItem(inputType)},
+                    ^
+sources/application.cpp:74:58: note: Parameter 'commandArgs' can be declared as reference to const
+void inputType(DataPool& data, std::vector<std::string>& commandArgs, Options&  /*opts*/, IConsole& console)
+                                                         ^
+sources/application.cpp:98:57: style: Parameter 'commandArgs' can be declared as reference to const. However it seems that 'inputVec' is a callback function, if 'commandArgs' is declared with const you might also need to cast function pointer(s). [constParameterCallback]
+void inputVec(DataPool& data, std::vector<std::string>& commandArgs, Options&  /*opts*/, IConsole& console)
+                                                        ^
+sources/application.cpp:22:20: note: You might need to cast the function pointer here
+  {"vec", MenuItem(inputVec)},
+                   ^
+sources/application.cpp:98:57: note: Parameter 'commandArgs' can be declared as reference to const
+void inputVec(DataPool& data, std::vector<std::string>& commandArgs, Options&  /*opts*/, IConsole& console)
+                                                        ^
+sources/application.cpp:119:55: style: Parameter 'commandArgs' can be declared as reference to const. However it seems that 'addVec' is a callback function, if 'commandArgs' is declared with const you might also need to cast function pointer(s). [constParameterCallback]
+void addVec(DataPool& data, std::vector<std::string>& commandArgs, Options&  /*opts*/, IConsole& console)
+                                                      ^
+sources/application.cpp:23:20: note: You might need to cast the function pointer here
+  {"add", MenuItem(addVec)},
+                   ^
+sources/application.cpp:119:55: note: Parameter 'commandArgs' can be declared as reference to const
+void addVec(DataPool& data, std::vector<std::string>& commandArgs, Options&  /*opts*/, IConsole& console)
+                                                      ^
+sources/application.cpp:193:65: style: Parameter 'commandArgs' can be declared as reference to const. However it seems that 'setUsername' is a callback function, if 'commandArgs' is declared with const you might also need to cast function pointer(s). [constParameterCallback]
+void setUsername(DataPool&  /*data*/, std::vector<std::string>& commandArgs, Options& opts, IConsole& console)
+                                                                ^
+sources/application.cpp:20:25: note: You might need to cast the function pointer here
+  {"username", MenuItem(setUsername)},
+                        ^
+sources/application.cpp:193:65: note: Parameter 'commandArgs' can be declared as reference to const
+void setUsername(DataPool&  /*data*/, std::vector<std::string>& commandArgs, Options& opts, IConsole& console)
+                                                                ^
+sources/data_pool.cpp:9:18: style: inconclusive: Technically the member function 'DataPool::size' can be const. [functionConst]
+size_t DataPool::size()
+                 ^
+sources/data_pool.h:12:9: note: Technically the member function 'DataPool::size' can be const.
+ size_t size();
+        ^
+sources/data_pool.cpp:9:18: note: Technically the member function 'DataPool::size' can be const.
+size_t DataPool::size()
+                 ^
+sources/data_pool.cpp:14:36: style: inconclusive: Function 'push' argument 1 names different: declaration 'vec4' definition 'vec'. [funcArgNamesDifferent]
+void DataPool::push(const Vector4& vec)
+                                   ^
+sources/data_pool.h:13:27: note: Function 'push' argument 1 names different: declaration 'vec4' definition 'vec'.
+ void push(const Vector4& vec4);
+                          ^
+sources/data_pool.cpp:14:36: note: Function 'push' argument 1 names different: declaration 'vec4' definition 'vec'.
+void DataPool::push(const Vector4& vec)
+                                   ^
+sources/options.cpp:0:0: information: Limiting analysis of branches. Use --check-level=exhaustive to analyze all branches. [normalCheckLevelMaxBranches]
+
+^
+sources/options.h:16:7: style: inconclusive: Member variable 'Options::_should_exit' is in the wrong place in the initializer list. [initializerList]
+ bool _should_exit;
+      ^
+sources/options.cpp:25:56: note: Member variable 'Options::_should_exit' is in the wrong place in the initializer list.
+Options::Options(int argc, char ** argv) : _status(0), _should_exit(false)
+                                                       ^
+sources/options.h:16:7: note: Member variable 'Options::_should_exit' is in the wrong place in the initializer list.
+ bool _should_exit;
+      ^
+sources/options.cpp:89:25: style: Checking if unsigned expression 'this->_role.size()' is less than zero. [unsignedLessThanZero]
+ if (this->_role.size() <= 0)
+                        ^
+sources/test/mock_console.h:37:44: performance: Function 'getOutput()' should return member '_output_lines' by const reference. [returnByReference]
+    [[nodiscard]] std::vector<std::string> getOutput() const {
+                                           ^
+sources/test/test_app.cpp:20:68: style: Consider using std::any_of algorithm instead of a raw loop. [useStlAlgorithm]
+        if (line.find("AVAILABLE COMMANDS:") != std::string::npos) {
+                                                                   ^
+sources/test/test_app.cpp:55:74: style: Consider using std::any_of algorithm instead of a raw loop. [useStlAlgorithm]
+        if (line.find("Currently set type: float") != std::string::npos) {
+                                                                         ^
+sources/test/test_app.cpp:77:69: style: Consider using std::any_of algorithm instead of a raw loop. [useStlAlgorithm]
+        if (line.find("Vector data updated!") != std::string::npos) {
+                                                                    ^
+sources/test/test_app.cpp:114:65: style: Consider using std::any_of algorithm instead of a raw loop. [useStlAlgorithm]
+        if (line.find("Unknown command!") != std::string::npos) {
+                                                                ^
+sources/test/test_app.cpp:148:70: style: Consider using std::any_of algorithm instead of a raw loop. [useStlAlgorithm]
+        if (line.find("Not enough arguments!") != std::string::npos) {
+                                                                     ^
+sources/vector4.cpp:0:0: information: Limiting analysis of branches. Use --check-level=exhaustive to analyze all branches. [normalCheckLevelMaxBranches]
+
+^
+sources/vector4.cpp:21:12: style: The member function 'Vector4::convertTo < int >' can be static. [functionStatic]
+T Vector4::convertTo(const std::string& str) const {
+           ^
+sources/vector4.h:21:7: note: The member function 'Vector4::convertTo < int >' can be static.
+    T convertTo(const std::string& str) const;
+      ^
+sources/vector4.cpp:21:12: note: The member function 'Vector4::convertTo < int >' can be static.
+T Vector4::convertTo(const std::string& str) const {
+           ^
+sources/vector4.cpp:21:12: style: The member function 'Vector4::convertTo < unsigned int >' can be static. [functionStatic]
+T Vector4::convertTo(const std::string& str) const {
+           ^
+sources/vector4.h:21:7: note: The member function 'Vector4::convertTo < unsigned int >' can be static.
+    T convertTo(const std::string& str) const;
+      ^
+sources/vector4.cpp:21:12: note: The member function 'Vector4::convertTo < unsigned int >' can be static.
+T Vector4::convertTo(const std::string& str) const {
+           ^
+sources/vector4.cpp:21:12: style: The member function 'Vector4::convertTo < float >' can be static. [functionStatic]
+T Vector4::convertTo(const std::string& str) const {
+           ^
+sources/vector4.h:21:7: note: The member function 'Vector4::convertTo < float >' can be static.
+    T convertTo(const std::string& str) const;
+      ^
+sources/vector4.cpp:21:12: note: The member function 'Vector4::convertTo < float >' can be static.
+T Vector4::convertTo(const std::string& str) const {
+           ^
+sources/vector4.cpp:21:12: style: The member function 'Vector4::convertTo < double >' can be static. [functionStatic]
+T Vector4::convertTo(const std::string& str) const {
+           ^
+sources/vector4.h:21:7: note: The member function 'Vector4::convertTo < double >' can be static.
+    T convertTo(const std::string& str) const;
+      ^
+sources/vector4.cpp:21:12: note: The member function 'Vector4::convertTo < double >' can be static.
+T Vector4::convertTo(const std::string& str) const {
+           ^
+sources/vector4.cpp:21:12: style: The member function 'Vector4::convertTo < char >' can be static. [functionStatic]
+T Vector4::convertTo(const std::string& str) const {
+           ^
+sources/vector4.h:21:7: note: The member function 'Vector4::convertTo < char >' can be static.
+    T convertTo(const std::string& str) const;
+      ^
+sources/vector4.cpp:21:12: note: The member function 'Vector4::convertTo < char >' can be static.
+T Vector4::convertTo(const std::string& str) const {
+           ^
+sources/vector4.cpp:21:12: style: The member function 'Vector4::convertTo < std :: string >' can be static. [functionStatic]
+T Vector4::convertTo(const std::string& str) const {
+           ^
+sources/vector4.h:21:7: note: The member function 'Vector4::convertTo < std :: string >' can be static.
+    T convertTo(const std::string& str) const;
+      ^
+sources/vector4.cpp:21:12: note: The member function 'Vector4::convertTo < std :: string >' can be static.
+T Vector4::convertTo(const std::string& str) const {
+           ^
+sources/vector4.cpp:21:12: style: The member function 'Vector4::convertTo < bool >' can be static. [functionStatic]
+T Vector4::convertTo(const std::string& str) const {
+           ^
+sources/vector4.h:21:7: note: The member function 'Vector4::convertTo < bool >' can be static.
+    T convertTo(const std::string& str) const;
+      ^
+sources/vector4.cpp:21:12: note: The member function 'Vector4::convertTo < bool >' can be static.
+T Vector4::convertTo(const std::string& str) const {
+           ^
+sources/vector4.cpp:59:15: style: inconclusive: Technically the member function 'Vector4::print' can be const. [functionConst]
+void Vector4::print(IConsole& console)
+              ^
+sources/vector4.h:42:7: note: Technically the member function 'Vector4::print' can be const.
+ void print(IConsole& console);
+      ^
+sources/vector4.cpp:59:15: note: Technically the member function 'Vector4::print' can be const.
+void Vector4::print(IConsole& console)
+              ^
+sources/vector4.cpp:66:22: style: inconclusive: Technically the member function 'Vector4::sprint' can be const. [functionConst]
+std::string Vector4::sprint()
+                     ^
+sources/vector4.h:43:14: note: Technically the member function 'Vector4::sprint' can be const.
+ std::string sprint();
+             ^
+sources/vector4.cpp:66:22: note: Technically the member function 'Vector4::sprint' can be const.
+std::string Vector4::sprint()
+                     ^
+sources/vector4.cpp:35:27: warning: Conversion of char literal '\0' to bool always evaluates to false. [incorrectCharBooleanError]
+  if (str.empty()) return '\0';
+                          ^
+sources/options.h:31:7: style: The function 'setStatus' is never used. [unusedFunction]
+ void setStatus(int status) { this->_status = status; }
+      ^
+sources/test/mock_console.h:41:10: style: The function 'clearOutput' is never used. [unusedFunction]
+    void clearOutput() {
+         ^
+nofile:0:0: information: Active checkers: 183/975 (use --checkers-report=<filename> to see details) [checkersReport]
+
