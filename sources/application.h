@@ -11,7 +11,7 @@ using command = std::function<void(Vector4& vec, std::vector<std::string>& comma
 
 void inputType(Vector4& vec, std::vector<std::string>& commandArgs, Options& opts, IConsole& console);
 void inputVec(Vector4& vec, std::vector<std::string>& commandArgs, Options& opts, IConsole& console);
-void setRole(Vector4& vec, std::vector<std::string>& commandArgs, Options& opts, IConsole& console);
+void setUsername(Vector4& vec, std::vector<std::string>& commandArgs, Options& opts, IConsole& console);
 void quitProgram(Vector4& vec, std::vector<std::string>& commandArgs, Options& opts, IConsole& console);
 void help(Vector4& vec, std::vector<std::string>& commandArgs, Options& opts, IConsole& console);
 
