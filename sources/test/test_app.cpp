@@ -1,18 +1,29 @@
 #include <gtest/gtest.h>
 #include "../options.h"
 #include "../vector4.h"
+#include "../data_pool.h"
+#include "../logger.h"
 #include "mock_console.h"
 #include "../application.h"
 
+// helper test logger
+static Logger& getTestLogger() {
+    static Logger logger("test_log.txt", false); // false = no console output
+    return logger;
+}
+
 TEST(ApplicationTest, HelpCommand) {
-    Options opts(0, nullptr);
+    Logger& logger = getTestLogger();
+    logger.clear();
+
+	Options opts(0, nullptr, logger);
     DataPool data;
-    MockConsole console;
+    MockConsole console;    
     
     console.addInputLine("help");
     console.addInputLine("quit");
     
-    runApplication(opts, data, console);
+    runApplication(opts, data, console, logger);
     
     auto output = console.getOutput();
     bool found_help = false;
@@ -26,28 +37,34 @@ TEST(ApplicationTest, HelpCommand) {
 }
 
 TEST(ApplicationTest, SetVectorType) {
-    Options opts(0, nullptr);
-	DataPool data;
-    MockConsole console;
+    Logger& logger = getTestLogger();
+    logger.clear();
+
+	Options opts(0, nullptr, logger);
+    DataPool data;
+	MockConsole console; 
     
     console.addInputLine("type float");
     console.addInputLine("quit");
     
-    runApplication(opts, data, console);
+    runApplication(opts, data, console, logger);
     
     EXPECT_EQ(data.frontMut().getType(), "float");
 }
 
 TEST(ApplicationTest, ViewCurrentType) {
-    Options opts(0, nullptr);
-	DataPool data;
+    Logger& logger = getTestLogger();
+    logger.clear();
+
+	Options opts(0, nullptr, logger);
+    DataPool data;
     data.frontMut().setType("float");
-    MockConsole console;
+	MockConsole console; 
     
     console.addInputLine("type");
     console.addInputLine("quit");
     
-    runApplication(opts, data, console);
+    runApplication(opts, data, console, logger);
     
     auto output = console.getOutput();
     bool found_type = false;
@@ -61,15 +78,18 @@ TEST(ApplicationTest, ViewCurrentType) {
 }
 
 TEST(ApplicationTest, SetVectorValues) {
-    Options opts(0, nullptr);
-	DataPool data;
+    Logger& logger = getTestLogger();
+    logger.clear();
+
+	Options opts(0, nullptr, logger);
+    DataPool data;
     data.frontMut().setType("float");
-    MockConsole console;
-    
+	MockConsole console; 
+
     console.addInputLine("vec 1.5 2.7 3.14 4.2");
     console.addInputLine("quit");
     
-    runApplication(opts, data, console);
+    runApplication(opts, data, console, logger);
     
     auto output = console.getOutput();
     bool found_update = false;
@@ -86,27 +106,33 @@ TEST(ApplicationTest, SetVectorValues) {
 }
 
 TEST(ApplicationTest, ChangeUsername) {
-    Options opts(0, nullptr);
+    Logger& logger = getTestLogger();
+    logger.clear();
+
+	Options opts(0, nullptr, logger);
     DataPool data;
-    MockConsole console;
-    
+    MockConsole console;  
+
     console.addInputLine("username admin");
     console.addInputLine("quit");
     
-    runApplication(opts, data, console);
+    runApplication(opts, data, console, logger);
     
     EXPECT_EQ(opts.getUsername(), "admin");
 }
 
 TEST(ApplicationTest, UnknownCommand) {
-    Options opts(0, nullptr);
+    Logger& logger = getTestLogger();
+    logger.clear();
+
+	Options opts(0, nullptr, logger);
     DataPool data;
-    MockConsole console;
+    MockConsole console;    
     
     console.addInputLine("unknown_command");
     console.addInputLine("quit");
     
-    runApplication(opts, data, console);
+    runApplication(opts, data, console, logger);
     
     auto output = console.getOutput();
     bool found_error = false;
@@ -120,27 +146,33 @@ TEST(ApplicationTest, UnknownCommand) {
 }
 
 TEST(ApplicationTest, EmptyInput) {
-    Options opts(0, nullptr);
+    Logger& logger = getTestLogger();
+    logger.clear();
+
+	Options opts(0, nullptr, logger);
     DataPool data;
     MockConsole console;
     
     console.addInputLine("");
     console.addInputLine("quit");
     
-    runApplication(opts, data, console);
+    runApplication(opts, data, console, logger);
     
     EXPECT_FALSE(console.hasMoreInput());
 }
 
 TEST(ApplicationTest, IncompleteVecCommand) {
-    Options opts(0, nullptr);
+    Logger& logger = getTestLogger();
+    logger.clear();
+
+	Options opts(0, nullptr, logger);
     DataPool data;
     MockConsole console;
     
     console.addInputLine("vec 1 2 3"); // Less args than needed
     console.addInputLine("quit");
     
-    runApplication(opts, data, console);
+    runApplication(opts, data, console, logger);
     
     auto output = console.getOutput();
     bool found_error = false;

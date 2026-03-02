@@ -24,7 +24,7 @@ ctest ./proteus_tests
 - -p PORT
 
 # TODO:
-- [ ] Logging
+- [x] Logging
 - [x] CppCheck
 - [x] Address Sanitizer
 - [ ] ResourceTest
