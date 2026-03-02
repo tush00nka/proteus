@@ -1,6 +1,7 @@
 #include <iostream>
 #include <span>
 #include "options.h"
+#include "logger.h"
 
 void Options::usage(const std::string &program_name)
 {
@@ -13,16 +14,18 @@ void Options::usage(const std::string &program_name)
 	std::cout << "\t" << "-L LIB" << "\n";
 }
 
-void Options::errorWithMessage(const std::string& program_name, const std::string& arg)
+void Options::errorWithMessage(const std::string& program_name, const std::string& arg, Logger& logger)
 {
-	std::cout << "ERROR: Flag '" << arg << "' doesn't seem to have a valid option set!" << "\n";
+	std::string error_message = "ERROR: Flag '" + arg +"' doesn't seem to have a valid option set!\n";
+	LOG_FATAL(logger, error_message);
+	std::cout << error_message;
 	usage(program_name);
 
 	_should_exit = true;
 	_status = 1;
 }
 
-Options::Options(int argc, char ** argv) : _status(0), _should_exit(false)
+Options::Options(int argc, char ** argv, Logger& logger) : _status(0), _should_exit(false)
 {
 	for (int i = 1; i < argc; ++i)
 	{
@@ -31,14 +34,14 @@ Options::Options(int argc, char ** argv) : _status(0), _should_exit(false)
 		
 		if (i+1 >= argc)
 		{
-			errorWithMessage(args[0], arg);
+			errorWithMessage(args[0], arg, logger);
 			break;
 		}
 
 		std::string next_arg = args[i+1];
 		if(next_arg.starts_with('-'))
 		{
-			errorWithMessage(args[0], arg);
+			errorWithMessage(args[0], arg, logger);
 			break;
 		}
 

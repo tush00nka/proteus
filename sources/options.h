@@ -1,3 +1,4 @@
+#include "logger.h"
 #include <string>
 #include <utility>
 
@@ -18,8 +19,8 @@ private:
 
 	static void usage(const std::string &program_name);
 public:
-	Options(int argc, char ** argv);
-	void errorWithMessage(const std::string& program_name, const std::string& arg);
+	Options(int argc, char ** argv, Logger& logger);
+	void errorWithMessage(const std::string& program_name, const std::string& arg, Logger& logger);
 
 	[[nodiscard]] std::string getUsername() { return this->_username; }
 	void setUsername(std::string username) { this->_username = std::move(username); }
