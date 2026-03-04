@@ -1,11 +1,14 @@
 #include "application.h"
+#include "accessibility.h"
 #include "data_pool.h"
 #include "logger.h"
 #include "vector4.h"
+#include <cstddef>
 #include <cstdio>
 #include <sstream>
 #include <string>
 #include <vector>
+#include <algorithm>
 
 MenuItem::MenuItem(command command) : _command(std::move(command)) {};
 
@@ -25,6 +28,7 @@ Menu::Menu()
 		{"vec", MenuItem(inputVec)},
 		{"add", MenuItem(addVec)},
 		{"pop", MenuItem(popVec)},
+		{"test", MenuItem(testAccessibility)},
 	};
 }
 
@@ -40,6 +44,19 @@ bool Menu::execute(const std::string& command_text, std::vector<std::string>& co
 
 int runApplication(Options& opts, DataPool& data, IConsole& console, Logger& logger) {
 	Menu menu = Menu();
+	ResourceTest resource_test = ResourceTest();
+
+	std::vector<std::string> files = {"main.cpp"};
+	bool has_files = resource_test.check("../sources/", files);
+
+	if(has_files)
+	{
+		console.printLine("Found all files");
+	}
+	else
+	{
+		console.printLine("NO FILES!!!");
+	}
 
 	while(!opts.getShouldExit())
 	{
@@ -236,7 +253,55 @@ void setUsername(DataPool&  /*data*/, std::vector<std::string>& commandArgs, Opt
 	const std::string& name = commandArgs[1];
 
 	opts.setUsername(name);
-	const std::string message =" Changed username to: " + name; 	
+	const std::string message = "Changed username to: " + name; 	
 	console.printLine(message);
 	LOG_INFO(logger, message);
+}
+
+void testAccessibility(DataPool & /*data*/, std::vector<std::string> &commandArgs, Options & /*opts*/, IConsole &console, Logger &logger)
+{
+	if (commandArgs.size() < 3)
+	{
+		const std::string& message = "Not enough arguments!";
+		LOG_ERROR(logger, message);
+		console.printLine(message);
+		return;
+
+	}
+
+	bool connection_test = false;
+	if (std::ranges::count(commandArgs[1], '/') <= 0) // if the are no '/', we think of the first argument as an ip-address, otherwise it's a file path
+	{
+		connection_test = true;
+	}
+
+	if (connection_test)
+	{
+		const std::string message = "Not implemented!";
+		LOG_DEBUG(logger, message);
+		console.printLine(message);
+	}
+	else
+	{
+		ResourceTest test = ResourceTest();
+		std::vector<std::string> filenames = {};
+
+		filenames.insert(
+			filenames.end(),
+			std::make_move_iterator(commandArgs.begin() + 2),
+			std::make_move_iterator(commandArgs.end())
+		);
+		commandArgs.erase(commandArgs.begin() + 2, commandArgs.end());
+
+		std::string result;
+		if (test.check(commandArgs[1], filenames))
+		{
+			result = "All files are found!";
+		} 
+		else {
+			result = "Some files are missing!";
+		}
+
+		console.printLine("ResourceTest result: " + result);
+	}
 }

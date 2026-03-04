@@ -19,6 +19,7 @@ void setUsername(DataPool& data, std::vector<std::string>& commandArgs, Options&
 void quitProgram(DataPool& data, std::vector<std::string>& commandArgs, Options& opts, IConsole& console, Logger& logger);
 void help(DataPool& data, std::vector<std::string>& commandArgs, Options& opts, IConsole& console, Logger& logger);
 void popVec(DataPool& data, std::vector<std::string>& commandArgs, Options& opts, IConsole& console, Logger& logger);
+void testAccessibility(DataPool& data, std::vector<std::string>& commandArgs, Options& opts, IConsole& console, Logger& logger);
 
 static void clear(IConsole& console)
 {

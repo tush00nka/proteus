@@ -9,6 +9,7 @@ set(SOURCES
     sources/vector4.cpp
 	sources/data_pool.cpp
 	sources/utils.cpp
+	sources/accessibility.cpp
 )
 
 add_executable(proteus 
