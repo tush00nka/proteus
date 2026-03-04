@@ -27,6 +27,6 @@ ctest ./proteus_tests
 - [x] Logging
 - [x] CppCheck
 - [x] Address Sanitizer
-- [ ] ResourceTest
-- [ ] ConnectionTest
+- [x] ResourceTest
+- [x] ConnectionTest
 - [ ] Class invariants
