@@ -10,6 +10,7 @@ set(SOURCES
 	sources/data_pool.cpp
 	sources/utils.cpp
 	sources/accessibility.cpp
+	sources/address.cpp
 )
 
 add_executable(proteus 

@@ -1,5 +1,6 @@
 #include <any>
 #include <iostream>
+#include <sstream>
 #include "utils.h"
 
 std::ostream& operator<<(std::ostream& os, const std::any& value) {
@@ -36,4 +37,17 @@ std::ostream& operator<<(std::ostream& os, const std::any& value) {
     }
     
     return os << "unknown_type(" << value.type().name() << ")";
+}
+
+std::vector<std::string> split(const std::string& value, char delim) {
+	std::vector<std::string> tokens {};
+
+	std::istringstream token_stream(value);
+	std::string token;
+	while(std::getline(token_stream, token, delim))
+	{
+		tokens.push_back(token);
+	}
+
+	return tokens;
 }

@@ -46,18 +46,6 @@ int runApplication(Options& opts, DataPool& data, IConsole& console, Logger& log
 	Menu menu = Menu();
 	ResourceTest resource_test = ResourceTest();
 
-	std::vector<std::string> files = {"main.cpp"};
-	bool has_files = resource_test.check("../sources/", files);
-
-	if(has_files)
-	{
-		console.printLine("Found all files");
-	}
-	else
-	{
-		console.printLine("NO FILES!!!");
-	}
-
 	while(!opts.getShouldExit())
 	{
 		console.print(opts.getUsername() + " > ");
@@ -230,6 +218,7 @@ void help(DataPool&  /*data*/, std::vector<std::string>&  /*commandArgs*/, Optio
 	console.printLine("type [TYPE NAME]\tset type of vector in front of the queue");
 	console.printLine("vec X Y Z W\tset values for a 4D vector in front of the queue");
 	console.printLine("add [TYPE] X Y Z W\tadd a 4D vector of TYPE to the queue");
+	console.printLine("test [ADDRESS | PATH] [PORT_1 PORT_2 ... | FILE_1 FILE_2 ...]\t perform ResourceTest or ConnectionTest");
 	console.printLine("\nSUPPORTED TYPES:");
 	console.printLine("\tint, uint\n\tfloat, double\n\tchar, string\n\tbool");
 }
@@ -275,26 +264,37 @@ void testAccessibility(DataPool & /*data*/, std::vector<std::string> &commandArg
 		connection_test = true;
 	}
 
+	std::vector<std::string> values = {};
+
+	values.insert(
+		values.end(),
+		std::make_move_iterator(commandArgs.begin() + 2),
+		std::make_move_iterator(commandArgs.end())
+	);
+	commandArgs.erase(commandArgs.begin() + 2, commandArgs.end());
+
+
 	if (connection_test)
 	{
-		const std::string message = "Not implemented!";
-		LOG_DEBUG(logger, message);
-		console.printLine(message);
+		ConnectionTest test = ConnectionTest();
+		
+		std::string result;
+		if (test.check(commandArgs[1], values))
+		{
+			result = "All ports on address are available!";
+		}
+		else
+		{
+			result = "Some ports are unavailable!";
+		}
+		console.printLine(result);
 	}
 	else
 	{
 		ResourceTest test = ResourceTest();
-		std::vector<std::string> filenames = {};
-
-		filenames.insert(
-			filenames.end(),
-			std::make_move_iterator(commandArgs.begin() + 2),
-			std::make_move_iterator(commandArgs.end())
-		);
-		commandArgs.erase(commandArgs.begin() + 2, commandArgs.end());
 
 		std::string result;
-		if (test.check(commandArgs[1], filenames))
+		if (test.check(commandArgs[1], values))
 		{
 			result = "All files are found!";
 		} 
