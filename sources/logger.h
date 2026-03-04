@@ -8,7 +8,7 @@
 #include <mutex>
 #include <thread>
 
-enum class LogType
+enum class LogType : std::uint8_t
 {
 	TRACE,
 	WARNING,
