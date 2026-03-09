@@ -1,3 +1,4 @@
+#include "address.h"
 #include "logger.h"
 #include <string>
 #include <utility>
@@ -6,8 +7,7 @@
 
 class Options {
 private:
-	std::string _address;
-	std::string _port;
+	std::unique_ptr<Address> _address; // _port is included in Address class
 	std::string _role;
 	std::size_t _index;
 	std::string _lib;
@@ -17,10 +17,10 @@ private:
 	bool _should_exit;
 	int _status;
 
-	static void usage(const std::string &program_name);
+	static void usage(std::string_view program_name);
 public:
 	Options(int argc, char ** argv, Logger& logger);
-	void errorWithMessage(const std::string& program_name, const std::string& arg, Logger& logger);
+	void errorWithMessage(std::string_view program_name, std::string_view message, Logger& logger);
 
 	[[nodiscard]] std::string getUsername() { return this->_username; }
 	void setUsername(std::string username) { this->_username = std::move(username); }

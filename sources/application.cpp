@@ -22,6 +22,9 @@ Menu::Menu()
 {
 	this->_items = {
 		{"quit", MenuItem(quitProgram)},
+		{"q", MenuItem(quitProgram)},
+		{"exit", MenuItem(quitProgram)},
+		
 		{"help", MenuItem(help)},
 		{"username", MenuItem(setUsername)},
 		{"type", MenuItem(inputType)},
@@ -52,7 +55,7 @@ int runApplication(Options& opts, DataPool& data, IConsole& console, Logger& log
 
 		std::string line = console.readLine();
 
-		LOG_USER(logger, line);
+		log<LogLevel::USER_INPUT>(logger, line);
 
 		std::vector<std::string> command_args;
 		std::string arg;
@@ -78,7 +81,7 @@ int runApplication(Options& opts, DataPool& data, IConsole& console, Logger& log
 		menu.execute(command, command_args, opts, data, console, logger);
 	}
 
-	LOG_INFO(logger, "App finished");
+	log<LogLevel::INFO>(logger, std::format("App finished with status {}", opts.getStatus()));
 
 	return opts.getStatus();
 }
@@ -88,7 +91,7 @@ void inputType(DataPool& data, std::vector<std::string>& commandArgs, Options&  
 	if (commandArgs.size() <= 1)
 	{
 		console.printLine("Currently set type: " + data.frontMut().getType()); 
-		LOG_INFO(logger, "Currently set type: " + data.frontMut().getType()); 
+		log<LogLevel::INFO>(logger, "Currently set type: " + data.frontMut().getType()); 
 		return;
 	}
 
@@ -98,12 +101,12 @@ void inputType(DataPool& data, std::vector<std::string>& commandArgs, Options&  
 	{
 		data.frontMut().setType(type);
 		console.printLine("Set type: " + type);
-		LOG_INFO(logger, "Set type: " + type);
+		log<LogLevel::INFO>(logger, "Set type: " + type);
 	}
 	else
 	{
 		console.printLine("Unknown type! Supported types are:"); 
-		LOG_ERROR(logger, "Unknown type: " + type);
+		log<LogLevel::ERROR>(logger, "Unknown type: " + type);
 		for (const auto& t : data.frontMut().getSupporedTypes()) {
 			console.printLine("  " + t);
 		}
@@ -120,14 +123,14 @@ void inputVec(DataPool& data, std::vector<std::string>& commandArgs, Options&  /
 
 	if (kInputVectorArgc < commandArgs.size())
 	{
-		LOG_WARNING(logger, "Too many arguments! Input will be truncated down to " + std::to_string(kInputVectorArgc-1) + " arguments!");
+		log<LogLevel::WARNING>(logger, "Too many arguments! Input will be shrunk down to " + std::to_string(kInputVectorArgc-1) + " arguments!");
 	}
 
 	if (kInputVectorArgc > commandArgs.size())
 	{
 		const std::string error_message = "Not enough arguments!";
 		console.printLine(error_message);
-		LOG_ERROR(logger, error_message);
+		log<LogLevel::ERROR>(logger, error_message);
 		return;
 	}
 
@@ -135,7 +138,7 @@ void inputVec(DataPool& data, std::vector<std::string>& commandArgs, Options&  /
 	{
 		const std::string message = "Vector data updated!";
 		console.printLine(message);
-		LOG_INFO(logger, message);
+		log<LogLevel::INFO>(logger, message);
 		data.frontMut().print(console);
 	}
 }
@@ -146,13 +149,13 @@ void addVec(DataPool& data, std::vector<std::string>& commandArgs, Options&  /*o
 	{
 		const std::string error_message = "Not enough arguments!";
 		console.printLine(error_message);
-		LOG_ERROR(logger, error_message);
+		log<LogLevel::ERROR>(logger, error_message);
 		return;
 	}
 
 	if (kAddVectorArgc < commandArgs.size())
 	{
-		LOG_WARNING(logger, "Too many arguments! Input will be truncated down to " + std::to_string(kInputVectorArgc-1) + " arguments!");
+		log<LogLevel::WARNING>(logger, "Too many arguments! Input will be shrunk down to " + std::to_string(kInputVectorArgc-1) + " arguments!");
 	}
 
 	std::string type;
@@ -187,7 +190,7 @@ void addVec(DataPool& data, std::vector<std::string>& commandArgs, Options&  /*o
 	{
 		const std::string message = "Vector of type " + data.frontMut().getType() + " has been added!";
 		console.printLine(message);
-		LOG_INFO(logger, message);
+		log<LogLevel::INFO>(logger, message);
 		data.frontMut().print(console);
 	}
 }
@@ -198,13 +201,13 @@ void popVec(DataPool& data, std::vector<std::string>&  /*commandArgs*/, Options&
 	{
 		const std::string error_message = "Cannot pop the last vector from queue!"; 
 		console.printLine(error_message);
-		LOG_ERROR(logger, error_message);
+		log<LogLevel::ERROR>(logger, error_message);
 		return;
 	}
 
 	const std::string message = "Popped vector" + data.frontMut().sprint() + " of type " + data.frontMut().getType(); 
 	console.printLine(message);
-	LOG_INFO(logger, message);
+	log<LogLevel::INFO>(logger, message);
 	data.pop();
 }
 
@@ -225,7 +228,7 @@ void help(DataPool&  /*data*/, std::vector<std::string>&  /*commandArgs*/, Optio
 
 void quitProgram(DataPool&  /*data*/, std::vector<std::string>&  /*commandArgs*/, Options&  opts, IConsole& /* console */, Logger& logger)
 {
-	LOG_INFO(logger, "Asked program to exit");
+	log<LogLevel::INFO>(logger, "Asked program to exit");
 	opts.setShouldExit();
 }
 
@@ -235,7 +238,7 @@ void setUsername(DataPool&  /*data*/, std::vector<std::string>& commandArgs, Opt
 	{
 		const std::string message = "Currently set username: " + opts.getUsername(); 
 		console.printLine(message);
-		LOG_INFO(logger, message); 
+		log<LogLevel::INFO>(logger, message); 
 		return;
 	}
 
@@ -244,7 +247,7 @@ void setUsername(DataPool&  /*data*/, std::vector<std::string>& commandArgs, Opt
 	opts.setUsername(name);
 	const std::string message = "Changed username to: " + name; 	
 	console.printLine(message);
-	LOG_INFO(logger, message);
+	log<LogLevel::INFO>(logger, message);
 }
 
 void testAccessibility(DataPool & /*data*/, std::vector<std::string> &commandArgs, Options & /*opts*/, IConsole &console, Logger &logger)
@@ -252,7 +255,7 @@ void testAccessibility(DataPool & /*data*/, std::vector<std::string> &commandArg
 	if (commandArgs.size() < 3)
 	{
 		const std::string& message = "Not enough arguments!";
-		LOG_ERROR(logger, message);
+		log<LogLevel::ERROR>(logger, message);
 		console.printLine(message);
 		return;
 
@@ -279,7 +282,7 @@ void testAccessibility(DataPool & /*data*/, std::vector<std::string> &commandArg
 		ConnectionTest test = ConnectionTest();
 		
 		std::string result;
-		if (test.check(commandArgs[1], values))
+		if (test.check(commandArgs[1], values, logger))
 		{
 			result = "All ports on address are available!";
 		}
@@ -294,7 +297,7 @@ void testAccessibility(DataPool & /*data*/, std::vector<std::string> &commandArg
 		ResourceTest test = ResourceTest();
 
 		std::string result;
-		if (test.check(commandArgs[1], values))
+		if (test.check(commandArgs[1], values, logger))
 		{
 			result = "All files are found!";
 		} 

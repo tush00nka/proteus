@@ -1,5 +1,6 @@
 #pragma once
 
+#include <chrono>
 #include <iomanip>
 #include <iostream>
 #include <string>
@@ -8,7 +9,7 @@
 #include <mutex>
 #include <thread>
 
-enum class LogType : std::uint8_t
+enum class LogLevel : std::uint8_t
 {
 	TRACE,
 	WARNING,
@@ -19,17 +20,17 @@ enum class LogType : std::uint8_t
 	DEBUG
 };
 
-inline std::string logTypeToString(LogType type)
+inline std::string logTypeToString(LogLevel type)
 {
     switch(type)
 	{
-        case LogType::TRACE:     return "TRACE";
-        case LogType::DEBUG:     return "DEBUG";
-        case LogType::INFO:      return "INFO";
-        case LogType::WARNING:   return "WARNING";
-        case LogType::ERROR:     return "ERROR";
-        case LogType::FATAL:     return "FATAL";
-        case LogType::USER_INPUT: return "USER_INPUT";
+        case LogLevel::TRACE:     return "TRACE";
+        case LogLevel::DEBUG:     return "DEBUG";
+        case LogLevel::INFO:      return "INFO";
+        case LogLevel::WARNING:   return "WARNING";
+        case LogLevel::ERROR:     return "ERROR";
+        case LogLevel::FATAL:     return "FATAL";
+        case LogLevel::USER_INPUT: return "USER_INPUT";
         default: return "UNKNOWN";
     }
 }
@@ -50,7 +51,11 @@ private:
             now.time_since_epoch()) % kMilliseconds;
         
         std::stringstream ss;
-        ss << std::put_time(std::localtime(&in_time_t), "%Y-%m-%d %H:%M:%S");
+
+		auto time_point = std::chrono::system_clock::now();
+		auto local_time_point = std::chrono::current_zone()->to_local(time_point);
+
+        ss << std::format("{:%Y-%m-%d %H:%M:%S}", local_time_point);
         ss << "." << std::setfill('0') << std::setw(3) << ms.count();
         return ss.str();
     }
@@ -83,7 +88,7 @@ public:
 	Logger(const Logger&) = delete;
     Logger& operator=(const Logger&) = delete;
 
-	void log(LogType type, const std::string& message, const std::string& file = "", int line = 0)
+	void log(LogLevel type, std::string_view message, const std::string& file = "", int line = 0)
 	{
 		std::lock_guard<std::mutex> lock(_log_mutex);
 
@@ -121,47 +126,69 @@ public:
         this->_log_file.open("proteus.log", std::ios::trunc);
     }
 
-	void trace(const std::string& message, const std::string& file = "", int line = 0)
+	void trace(std::string_view message, const std::string& file = "", int line = 0)
 	{
-        log(LogType::TRACE, message, file, line);
+        log(LogLevel::TRACE, message, file, line);
     }
     
-    void debug(const std::string& message, const std::string& file = "", int line = 0)
+    void debug(std::string_view message, const std::string& file = "", int line = 0)
 	{
-        log(LogType::DEBUG, message, file, line);
+        log(LogLevel::DEBUG, message, file, line);
     }
     
-    void info(const std::string& message, const std::string& file = "", int line = 0)
+    void info(std::string_view message, const std::string& file = "", int line = 0)
 	{
-        log(LogType::INFO, message, file, line);
+        log(LogLevel::INFO, message, file, line);
     }
     
-    void warning(const std::string& message, const std::string& file = "", int line = 0)
+    void warning(std::string_view message, const std::string& file = "", int line = 0)
 	{
-        log(LogType::WARNING, message, file, line);
+        log(LogLevel::WARNING, message, file, line);
     }
     
-    void error(const std::string& message, const std::string& file = "", int line = 0)
+    void error(std::string_view message, const std::string& file = "", int line = 0)
 	{
-        log(LogType::ERROR, message, file, line);
+        log(LogLevel::ERROR, message, file, line);
     }
     
-    void fatal(const std::string& message, const std::string& file = "", int line = 0)
+    void fatal(std::string_view message, const std::string& file = "", int line = 0)
 	{
-        log(LogType::FATAL, message, file, line);
+        log(LogLevel::FATAL, message, file, line);
     }
     
-    void userInput(const std::string& message, const std::string& file = "", int line = 0)
+    void userInput(std::string_view message, const std::string& file = "", int line = 0)
 	{
-        log(LogType::USER_INPUT, message, file, line);
+        log(LogLevel::USER_INPUT, message, file, line);
     }
 };
 
-// automatically add file and line
-#define LOG_TRACE(logger, msg) (logger).trace(msg, __FILE__, __LINE__)
-#define LOG_DEBUG(logger, msg) (logger).debug(msg, __FILE__, __LINE__)
-#define LOG_INFO(logger, msg) (logger).info(msg, __FILE__, __LINE__)
-#define LOG_WARNING(logger, msg) (logger).warning(msg, __FILE__, __LINE__)
-#define LOG_ERROR(logger, msg) (logger).error(msg, __FILE__, __LINE__)
-#define LOG_FATAL(logger, msg) (logger).fatal(msg, __FILE__, __LINE__)
-#define LOG_USER(logger, msg) (logger).userInput(msg, __FILE__, __LINE__)
+template<LogLevel Level>
+constexpr void log(Logger& logger, std::string_view msg, const char* file = __builtin_FILE(), int line = __builtin_LINE())
+{
+	switch(Level)
+	{
+		case LogLevel::TRACE:
+			logger.trace(msg, file, line);
+			break;
+		case LogLevel::DEBUG:
+			logger.debug(msg, file, line);
+			break;	
+		case LogLevel::INFO:
+			logger.info(msg, file, line);
+			break;
+		case LogLevel::WARNING:
+			logger.warning(msg, file, line);
+			break;
+		case LogLevel::ERROR:
+			logger.error(msg, file, line);
+			break;
+		case LogLevel::FATAL:
+			logger.fatal(msg, file, line);
+			break;
+		case LogLevel::USER_INPUT:
+			logger.userInput(msg, file, line);
+			break;
+		default:
+			logger.trace(msg, file, line);
+	}
+}

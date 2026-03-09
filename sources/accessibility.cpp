@@ -14,9 +14,18 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 
-bool ConnectionTest::check(const std::string& address, std::vector<std::string>& ports)
+template<typename AddrType>
+static int connectWrapper(int sock, const AddrType& addr)
 {
-	auto addr = Address(address);
+	// we have to use reinterpret_cast here as we work with raw C pointers 
+	// 
+	// NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
+	return connect(sock, reinterpret_cast<const struct sockaddr*>(&addr), sizeof(addr));
+}
+
+bool ConnectionTest::check(const std::string& address, std::vector<std::string>& ports, Logger& logger)
+{
+	auto addr = Address(address, logger);
 	
 	int sock = 0;
 	struct sockaddr_in serv_addr{};
@@ -26,9 +35,9 @@ bool ConnectionTest::check(const std::string& address, std::vector<std::string>&
 		return false;
 	}
 
-	for (int i = 0; i < ports.size(); ++i)
+	for (const auto & port : ports)
 	{
-		addr.setPort(std::stoi(ports[i]));
+		addr.setPort(std::stoi(port));
 
 		serv_addr.sin_family = AF_INET;
 		serv_addr.sin_port = htons(addr.getPort());
@@ -41,7 +50,7 @@ bool ConnectionTest::check(const std::string& address, std::vector<std::string>&
 			return false;
 		}
 
-		int sock_connection_result = connect(sock, (struct sockaddr*)&serv_addr, sizeof(serv_addr));
+		int sock_connection_result = connectWrapper(sock, serv_addr);
 		if (sock_creation_result < 0)
 		{
 			close(sock);
@@ -54,7 +63,7 @@ bool ConnectionTest::check(const std::string& address, std::vector<std::string>&
 	return true;
 }
 
-bool ResourceTest::check(const std::string& path, std::vector<std::string>&  filenames) 
+bool ResourceTest::check(const std::string& path, std::vector<std::string>& filenames, Logger&  /*logger*/) 
 {
 	std::unordered_map<std::string, size_t> appearances; 
 
