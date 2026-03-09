@@ -14,17 +14,20 @@ public:
 
 class RealConsole : public IConsole {
 public:
-	std::string readLine() override {
+	std::string readLine() override 
+	{
 		std::string line;
 		std::getline(std::cin, line);
 		return line;
 	}
 
-	void print(const std::string& text) override {
+	void print(const std::string& text) override
+	{
 		std::cout << text;
 	}
 
-	void printLine(const std::string& text) override {
+	void printLine(const std::string& text) override
+	{
         std::cout << text << "\n";
     }
 };

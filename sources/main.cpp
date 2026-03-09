@@ -15,7 +15,7 @@ int main(int argc, char ** argv)
 
 	logger.clear();
 
-	LOG_INFO(logger, "App started");
+	log<LogLevel::INFO>(logger, "App started");
 
 	RealConsole console;
 	Options opts = Options(argc, argv, logger); 

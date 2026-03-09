@@ -1,5 +1,6 @@
 #pragma once
 
+#include "logger.h"
 #include <string>
 #include <vector>
 
@@ -12,17 +13,17 @@ public:
   	AccessiblityTest &operator=(AccessiblityTest &&) = delete;
   	virtual ~AccessiblityTest() = default;
 
-  	virtual bool check(const std::string&, std::vector<std::string>&) = 0;
+  	virtual bool check(const std::string&, std::vector<std::string>&, Logger& logger) = 0;
 };
 
 class ConnectionTest : public AccessiblityTest {
 public:
 	ConnectionTest() = default;
-	bool check(const std::string& address, std::vector<std::string>& ports) override;
+	bool check(const std::string& address, std::vector<std::string>& ports, Logger& logger) override;
 };
 
 class ResourceTest : public AccessiblityTest {
 public:
 	ResourceTest() = default;
-	bool check(const std::string& path, std::vector<std::string>& filenames) override;
+	bool check(const std::string& path, std::vector<std::string>& filenames, Logger& logger) override;
 };

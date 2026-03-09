@@ -1,51 +1,62 @@
 #include "address.h"
-#include "utils.h"
+#include "logger.h"
 
 #include <algorithm>
 #include <array>
-#include <charconv>
 #include <cstdint>
+#include <exception>
+#include <sstream>
 #include <string>
 #include <vector>
 #include <iostream>
 
-Address::Address(const std::string& value)
+Address::Address(const std::string& value, Logger& logger)
 {
-	std::vector<std::string> address_and_port = split(value, ':');
-	if (address_and_port.size() > 1)
-	{
-		auto [ptr, ec] = std::from_chars(address_and_port[1].data(),
-						address_and_port[1].data() + address_and_port[1].size(),
-						this->_port);
-		
-		if (ec != std::errc())
+	std::string str = value;
+	std::ranges::replace(str, '.', ' ');
+	std::ranges::replace(str, ':', ' ');
+
+	std::vector<int> parts;
+	std::istringstream iss(str);
+	int num { 0 };
+	try {
+		while (iss >> num)
 		{
-			this->_port = kDefaultPort;
+			parts.push_back(num);
 		}
+	}
+	catch (std::exception& e)
+	{
+		log<LogLevel::FATAL>(logger, "Failed to parse address string");
+		return;
+	}
+
+	if (parts.size() >= kAddressPartsSize)
+	{
+		this->_port = parts[parts.size()-1];
+		parts.pop_back();
 	}
 	else
 	{
 		this->_port = kDefaultPort;
 	}
 
-	std::string address_string = std::move(address_and_port[0]);
+	if (parts[0] < 0 || parts[0] > kIpOctet ||
+		parts[1] < 0 || parts[1] > kIpOctet ||
+		parts[2] < 0 || parts[2] > kIpOctet ||
+		parts[3] < 0 || parts[3] > kIpOctet)
+	{
+		_address = std::array<uint8_t, 4> {0,0,0,0};
+		log<LogLevel::ERROR>(logger, "IP octet out of range (0-255)");
+		return;
+	}
 
-	std::vector<std::string> address_parts = split(address_string, '.');
-	
-	auto t = [](const std::string& str) {
-		uint8_t address_part = 0;
-
-		auto [ptr, ec] = std::from_chars(str.data(), str.data() + str.size(), address_part);
-		
-		if (ec != std::errc()) // probably a bad idea, but works for now
-		{
-			address_part = 0;
-		}
-
-		return address_part;
+	_address = std::array<uint8_t, 4>{
+		static_cast<uint8_t>(parts[0]),
+		static_cast<uint8_t>(parts[1]),
+		static_cast<uint8_t>(parts[2]),
+		static_cast<uint8_t>(parts[3])
 	};
-
-	std::ranges::transform(address_parts.begin(), address_parts.end(), this->_address.begin(), t);
 }
 
 // Address::Address(std::array<uint8_t, 4>& address) : _address(address) {}
