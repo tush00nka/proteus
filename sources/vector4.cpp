@@ -124,7 +124,7 @@ bool Vector4::setData(const std::string& xStr, const std::string& yStr, const st
 			_z = convertTo<bool>(zStr);
 			_w = convertTo<bool>(wStr);
 		}
-		else
+		else // TODO(tushonka): make better exception handling 
 		{
 			std::cout << "Unsupported type: " << _type << "\n";
 			return false;
