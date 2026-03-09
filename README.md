@@ -30,6 +30,6 @@ ctest ./proteus_tests
 - [x] ResourceTest
 - [x] ConnectionTest
 - [ ] Class invariants
-- [ ] Templates?
+- [x] Templates?
 - [ ] Better test coverage
-- [ ] Better Address and cli args parsing
+- [x] Better Address and cli args parsing
