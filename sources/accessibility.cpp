@@ -1,5 +1,6 @@
 #include "accessibility.h"
 #include "address.h"
+#include "logger.h"
 #include "utils.h"
 
 #include <algorithm>
@@ -23,44 +24,54 @@ static int connectWrapper(int sock, const AddrType& addr)
 	return connect(sock, reinterpret_cast<const struct sockaddr*>(&addr), sizeof(addr));
 }
 
+// if at least one port asa available, we return true, otherwise false
 bool ConnectionTest::check(const std::string& address, std::vector<std::string>& ports, Logger& logger)
 {
 	auto addr = Address(address, logger);
 	
-	int sock = 0;
-	struct sockaddr_in serv_addr{};
-
-	int sock_creation_result = (sock = socket(AF_INET, SOCK_STREAM, 0));
-	if (sock_creation_result < 0) {
-		return false;
-	}
-
 	for (const auto & port : ports)
 	{
+		int sock = 0;
+		sock = socket(AF_INET, SOCK_STREAM, 0);
+		if (sock < 0)
+		{
+			return false;
+		}
+
+		struct timeval timeout{};
+		timeout.tv_sec = 2;
+		timeout.tv_usec = 0;
+		setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout));
+		setsockopt(sock, SOL_SOCKET, SO_SNDTIMEO, &timeout, sizeof(timeout));
+
 		addr.setPort(std::stoi(port));
 
+		struct sockaddr_in serv_addr{};
 		serv_addr.sin_family = AF_INET;
 		serv_addr.sin_port = htons(addr.getPort());
 
 		int inet_pton_result = inet_pton(AF_INET, addr.getAddressString().data(), &serv_addr.sin_addr);
-		if (inet_pton_result < 0)
+		if (inet_pton_result <= 0)
 		{
-			const std::string& msg = "Invalid address / Address not supported";
+			const std::string_view msg = "Invalid address / Address not supported";
+			log<LogLevel::WARNING>(logger, msg);
 			close(sock);
-			return false;
+			continue;
 		}
 
 		int sock_connection_result = connectWrapper(sock, serv_addr);
-		if (sock_creation_result < 0)
+		if (sock_connection_result == 0)
 		{
+			log<LogLevel::INFO>(logger, "Connected to: " + addr.getAddressString());
 			close(sock);
-			return false;
+			return true;
 		}	
+		
+		log<LogLevel::DEBUG>(logger, "Failed to connect to port: " + port);
+		close(sock);
 	}
 
-	close(sock);
-	
-	return true;
+	return false;
 }
 
 bool ResourceTest::check(const std::string& path, std::vector<std::string>& filenames, Logger&  /*logger*/) 

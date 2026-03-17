@@ -284,11 +284,11 @@ void testAccessibility(DataPool & /*data*/, std::vector<std::string> &commandArg
 		std::string result;
 		if (test.check(commandArgs[1], values, logger))
 		{
-			result = "All ports on address are available!";
+			result = "There are available ports!";
 		}
 		else
 		{
-			result = "Some ports are unavailable!";
+			result = "All ports are unavailable :(";
 		}
 		console.printLine(result);
 	}

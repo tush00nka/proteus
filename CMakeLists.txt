@@ -18,6 +18,12 @@ add_executable(proteus
 	${SOURCES}
 )
 
+add_executable(proteus_server
+	sources/server.cpp
+	sources/vector4.cpp
+	sources/utils.cpp
+)
+
 enable_testing()
 find_package(GTest REQUIRED)
 
