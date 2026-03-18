@@ -54,6 +54,6 @@ ctest ./proteus_tests
 - [ ] Better test coverage
 - [x] Better Address and cli args parsing
 - [ ] HEX Address support
-- [ ] Server-side data processing
+- [x] Server-side data processing
 - [ ] Logger for Server
 - [ ] Benchmarking
