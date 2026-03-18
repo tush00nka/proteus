@@ -71,7 +71,7 @@ std::string trim(const std::string& str, const std::string& toTrim) {
     return rtrim(ltrim(str, toTrim), toTrim);
 }
 
-std::string toUpper(std::string str)
+std::string toUpper(std::string& str)
 {
 	std::ranges::transform(str, str.begin(), ::toupper);
 	return str;

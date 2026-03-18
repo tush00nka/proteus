@@ -2,6 +2,7 @@
 #include <cstring>
 #include <functional>
 #include <iostream>
+#include "utils.h"
 #include "vector4.h"
 
 #include <sys/socket.h>
@@ -47,10 +48,14 @@ int main()
 		{"string", 
 			[](Vector4& vec)
 			{
-				auto x = "p_" + std::any_cast<std::string>(vec.getX());
-				auto y = "p_" + std::any_cast<std::string>(vec.getY());
-				auto z = "p_" + std::any_cast<std::string>(vec.getZ());
-				auto w = "p_" + std::any_cast<std::string>(vec.getW());
+				auto x = std::any_cast<std::string>(vec.getX());
+				toUpper(x);
+				auto y = std::any_cast<std::string>(vec.getY());
+				toUpper(y);
+				auto z = std::any_cast<std::string>(vec.getZ());
+				toUpper(z);
+				auto w = std::any_cast<std::string>(vec.getW());
+				toUpper(w);
 				vec.setData(x, y, z, w);
 			}
 		},
