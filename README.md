@@ -4,10 +4,28 @@ CLI application for Protei IT-School
 
 # Quick Start
 
+## Build
+
 ```sh
 mkdir build && cd build
 cmake .. && make
-./proteus
+```
+
+## Run Client
+
+```sh
+./proteus -a 127.0.0.1 -p 8080
+```
+
+or 
+
+```sh
+./proteus -a 127.0.0.1:8080
+```
+
+## Run Server
+```sh
+./proteus_server
 ```
 
 # Run Tests
@@ -36,3 +54,6 @@ ctest ./proteus_tests
 - [ ] Better test coverage
 - [x] Better Address and cli args parsing
 - [ ] HEX Address support
+- [ ] Server-side data processing
+- [ ] Logger for Server
+- [ ] Benchmarking
