@@ -1,5 +1,6 @@
 #include "address.h"
 #include "logger.h"
+#include <memory>
 #include <string>
 #include <utility>
 
@@ -30,4 +31,6 @@ public:
 	
 	[[nodiscard]] int getStatus() const { return this->_status; }
 	void setStatus(int status) { this->_status = status; }
+
+	Address getAddress() const;
 };

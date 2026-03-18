@@ -18,7 +18,6 @@ void Options::usage(std::string_view program_name)
 
 void Options::errorWithMessage(std::string_view program_name, std::string_view message, Logger& logger)
 {
-	// std::string error_message = "ERROR: Flag '" + arg +"' doesn't seem to have a valid option set!\n";
 	log<LogLevel::FATAL>(logger, message);
 	std::cout << message << '\n';
 	usage(program_name);
@@ -52,9 +51,15 @@ Options::Options(int argc, char ** argv, Logger& logger) : _address(nullptr), _s
 			std::string address_accum;
 			size_t counter = 1;
 			std::string current_arg = args[i+counter];
-			while(!current_arg.starts_with('-') && counter < args.size()-1)
+			while(counter < args.size()-1)
 			{
 				current_arg = args[i+counter];
+
+				if (current_arg.starts_with('-'))
+				{
+					break;
+				}
+
 				address_accum += ' ' + current_arg;
 				counter++;
 			}
@@ -64,6 +69,7 @@ Options::Options(int argc, char ** argv, Logger& logger) : _address(nullptr), _s
 			this->_address = std::make_unique<Address>(Address(address_accum, logger));
 			log<LogLevel::INFO>(logger, "Address is set to: "+this->_address->sprint());
 			i+=counter-1;
+
 			continue;
 		}
 
@@ -83,8 +89,10 @@ Options::Options(int argc, char ** argv, Logger& logger) : _address(nullptr), _s
 				errorWithMessage(args[0], std::format("Failed to parse `-p` flag argument: {}", e.what()), logger);
 				break;
 			}	
+
 			log<LogLevel::INFO>(logger, "Address is set to: "+this->_address->sprint()+" (via -p flag)");
 			i++;
+			
 			continue;
 		}
 
@@ -135,4 +143,9 @@ Options::Options(int argc, char ** argv, Logger& logger) : _address(nullptr), _s
 	{
 		this->_role = "Client";
 	}
+}
+
+Address Options::getAddress() const
+{
+	return *this->_address;
 }

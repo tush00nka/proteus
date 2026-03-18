@@ -51,3 +51,20 @@ std::vector<std::string> split(const std::string& value, char delim) {
 
 	return tokens;
 }
+
+// Trim from start (left)
+std::string ltrim(const std::string& str, const std::string& toTrim) {
+    size_t start = str.find_first_not_of(toTrim);
+    return (start == std::string::npos) ? "" : str.substr(start);
+}
+
+// Trim from end (right)
+std::string rtrim(const std::string& str, const std::string& toTrim) {
+    size_t end = str.find_last_not_of(toTrim);
+    return (end == std::string::npos) ? "" : str.substr(0, end + 1);
+}
+
+// Trim from both ends
+std::string trim(const std::string& str, const std::string& toTrim) {
+    return rtrim(ltrim(str, toTrim), toTrim);
+}

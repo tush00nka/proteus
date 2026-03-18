@@ -2,6 +2,8 @@
 
 #include "console_interface.h"
 #include <any>
+#include <format>
+#include <sstream>
 #include <string>
 #include <array>
 
@@ -66,4 +68,7 @@ public:
 	void print(IConsole& console);
 	std::string sprint();
     bool setData(const std::string& xStr, const std::string& yStr, const std::string& zStr, const std::string& wStr);
+	
+	std::string serialize();
+	bool deserialize(const std::string& json);
 };

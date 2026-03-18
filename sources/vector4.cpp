@@ -2,11 +2,12 @@
 #include "console_interface.h"
 #include "utils.h"
 
+#include <algorithm>
 #include <iostream>
 #include <sstream>
 #include <string>
-#include <algorithm>
 #include <utility>
+#include <vector>
 
 Vector4::Vector4(): _type("int"), _x(0), _y(0), _z(0), _w(0) {
 	this->_supported_types = {"int",  "uint",   "float", "double", "char", "string", "bool"};
@@ -136,4 +137,76 @@ bool Vector4::setData(const std::string& xStr, const std::string& yStr, const st
 		std::cout << "Conversion error: " << e.what() << "\n";
 		return false;
 	}
+}
+
+std::string Vector4::serialize()
+{
+	std::ostringstream oss;
+	oss << "{ type: \""<< _type << "\", x: " << this->_x << ", y: " << this->_y << ", z: " << this->_z << ", w: " << this->_w << " }";
+
+	return oss.str();
+}
+
+bool Vector4::deserialize(const std::string& json)
+{
+	std::vector<std::string> vars = split(json, ',');
+
+	std::vector<std::string> clean {};
+
+	for (auto &var : vars)
+	{
+		std::ranges::replace(var, '}', ' ');
+		std::ranges::replace(var, '{', ' ');
+		std::vector<std::string> parts = split(var, ':');
+
+		for (auto &part : parts)
+		{
+			clean.push_back(trim(part));
+		}
+	}
+
+	std::string x_str;
+	std::string y_str;
+	std::string z_str;
+	std::string w_str;
+
+	for (size_t i = 0; i < clean.size(); ++i)
+	{
+		if (clean[i] == "type")
+		{
+			setType(trim(clean[i+1], "\""));
+			i++;
+			continue;
+		}
+
+		if (clean[i] == "x")
+		{
+			x_str = trim(clean[i+1], "\"");
+			i++;
+			continue;
+		}
+	
+		if (clean[i] == "y")
+		{
+			y_str = trim(clean[i+1], "\"");
+			i++;
+			continue;
+		}
+
+		if (clean[i] == "z")
+		{
+			z_str = trim(clean[i+1], "\"");
+			i++;
+			continue;
+		}
+	
+		if (clean[i] == "w")
+		{
+			w_str = trim(clean[i+1], "\"");
+			i++;
+			continue;
+		}
+	}
+
+	return setData(x_str, y_str, z_str, w_str);	
 }

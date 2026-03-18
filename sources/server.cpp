@@ -20,11 +20,16 @@ int main()
 	int addrlen = sizeof(address);
 	char buffer[kBufferSize] = {0};
 
+	// std::unordered_map<std::string, std::function<void(Vector4& input)>> processors = {
+	// 	{"bool", [](Vector4& vec){ vec.setData(vec., const std::string &yStr, const std::string &zStr, const std::string &wStr)}},	
+	// };
+
 	int socket_creation_result = (server_fd = socket(AF_INET, SOCK_STREAM, 0));
 	if (socket_creation_result == 0) {
         std::cerr << "Socket creation failed\n";
         return -1;
     }
+	
 	// int setsockopt_result = setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
     // if (setsockopt_result == 0) {
     //     std::cerr << "Setsockopt failed\n";
@@ -71,9 +76,14 @@ int main()
             break;
         }
         
-        std::cout << "Received: " << static_cast<void*>(buffer) << "\n";
+        std::cout << "Received: " << static_cast<char*>(buffer) << "\n";
         
-        std::string response = "Server received: " + std::string(static_cast<char*>(buffer)) + "\n";
+		Vector4 vec;
+		vec.deserialize(std::string(static_cast<char*>(buffer)));
+
+		// perform data processing here
+
+        std::string response = vec.serialize();
         send(client_fd, response.c_str(), response.length(), 0);
     }
 
