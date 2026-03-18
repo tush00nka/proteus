@@ -67,6 +67,26 @@ public:
 	std::string sprint();
     bool setData(const std::string& xStr, const std::string& yStr, const std::string& zStr, const std::string& wStr);
 	
+	std::any getX()
+	{
+		return this->_x;
+	}
+
+	std::any getY()
+	{
+		return this->_y;
+	}
+
+	std::any getZ()
+	{
+		return this->_z;
+	}
+
+	std::any getW()
+	{
+		return this->_w;
+	}
+
 	std::string serialize();
 	bool deserialize(const std::string& json);
 };

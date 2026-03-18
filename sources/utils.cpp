@@ -1,4 +1,6 @@
+#include <algorithm>
 #include <any>
+#include <cctype>
 #include <iostream>
 #include <sstream>
 #include "utils.h"
@@ -67,4 +69,10 @@ std::string rtrim(const std::string& str, const std::string& toTrim) {
 // Trim from both ends
 std::string trim(const std::string& str, const std::string& toTrim) {
     return rtrim(ltrim(str, toTrim), toTrim);
+}
+
+std::string toUpper(std::string& str)
+{
+	std::ranges::transform(str, str.begin(), ::toupper);
+	return str;
 }
