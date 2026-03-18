@@ -11,6 +11,7 @@ set(SOURCES
 	sources/utils.cpp
 	sources/accessibility.cpp
 	sources/address.cpp
+	sources/logger.cpp
 )
 
 add_executable(proteus 
@@ -22,6 +23,7 @@ add_executable(proteus_server
 	sources/server.cpp
 	sources/vector4.cpp
 	sources/utils.cpp
+	sources/logger.cpp
 )
 
 enable_testing()

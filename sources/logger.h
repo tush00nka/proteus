@@ -1,5 +1,3 @@
-// TODO(tush00nka): move implementation to .cpp file 
-
 #pragma once
 
 #include <chrono>
@@ -78,90 +76,28 @@ public:
             std::cerr << "Failed to open log file: " << filename << "\n";
         }
     }
-    
-    ~Logger()
-	{
-        if (_log_file.is_open())
-		{
-            _log_file.close();
-        }
+
+    Logger(Logger &&) = delete;
+    Logger &operator=(Logger &&) = delete;
+    ~Logger() {
+      if (_log_file.is_open()) {
+        _log_file.close();
+      }
     }
 
-	Logger(const Logger&) = delete;
+        Logger(const Logger&) = delete;
     Logger& operator=(const Logger&) = delete;
 
-	void log(LogLevel type, std::string_view message, const std::string& file = "", int line = 0)
-	{
-		std::lock_guard<std::mutex> lock(_log_mutex);
+	void log      (LogLevel type, std::string_view message, const std::string& file, int line);
+	void clear    (const std::string& filename = "proteus.log");
 
-		std::stringstream log_entry;
-
-		log_entry << getCurrentDateTime() << " ";
-		log_entry << "[" << logTypeToString(type) << "] ";
-		log_entry << getThreadId() << " ";
-		log_entry << message << " ";
-
-		if (!file.empty() && line > 0)
-		{
-            log_entry << "[" << file << ":" << line << "]";
-        }
-
-        std::string full_message = log_entry.str();
-        
-        // Запись в файл
-        if (this->_log_file.is_open()) {
-            this->_log_file << full_message << "\n";
-            this->_log_file.flush();
-        }
-        
-        // Запись в консоль
-        if (this->_console_output) {
-            std::cout << full_message << "\n";
-        }
-	}
-
-	void clear() {
-        std::lock_guard<std::mutex> lock(this->_log_mutex);
-        if (this->_log_file.is_open()) {
-            this->_log_file.close();
-        }
-        this->_log_file.open("proteus.log", std::ios::trunc);
-    }
-
-	void trace(std::string_view message, const std::string& file = "", int line = 0)
-	{
-        log(LogLevel::TRACE, message, file, line);
-    }
-    
-    void debug(std::string_view message, const std::string& file = "", int line = 0)
-	{
-        log(LogLevel::DEBUG, message, file, line);
-    }
-    
-    void info(std::string_view message, const std::string& file = "", int line = 0)
-	{
-        log(LogLevel::INFO, message, file, line);
-    }
-    
-    void warning(std::string_view message, const std::string& file = "", int line = 0)
-	{
-        log(LogLevel::WARNING, message, file, line);
-    }
-    
-    void error(std::string_view message, const std::string& file = "", int line = 0)
-	{
-        log(LogLevel::ERROR, message, file, line);
-    }
-    
-    void fatal(std::string_view message, const std::string& file = "", int line = 0)
-	{
-        log(LogLevel::FATAL, message, file, line);
-    }
-    
-    void userInput(std::string_view message, const std::string& file = "", int line = 0)
-	{
-        log(LogLevel::USER_INPUT, message, file, line);
-    }
+	void trace    (std::string_view message, const std::string& file, int line);
+	void debug    (std::string_view message, const std::string& file, int line);
+	void info     (std::string_view message, const std::string& file, int line);
+	void warning  (std::string_view message, const std::string& file, int line);
+	void error    (std::string_view message, const std::string& file, int line);
+	void fatal    (std::string_view message, const std::string& file, int line);
+	void userInput(std::string_view message, const std::string& file, int line);
 };
 
 template<LogLevel Level>
