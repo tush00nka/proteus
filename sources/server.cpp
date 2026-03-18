@@ -2,9 +2,11 @@
 #include <cstring>
 #include <functional>
 #include <iostream>
+#include "logger.h"
 #include "utils.h"
 #include "vector4.h"
 
+#include <string>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <unistd.h>
@@ -31,8 +33,10 @@ int main()
 	struct sockaddr_in address {};
 	int opt = 1;
 	int addrlen = sizeof(address);
-	char buffer[kBufferSize] = {0};
+	std::array<char, kBufferSize> buffer = {0};
 
+	Logger logger("proteus_server.log", true);
+	logger.clear("proteus_server.log");
 
 	std::unordered_map<std::string, std::function<void(Vector4& input)>> processors = {
 		{"bool", 
@@ -68,6 +72,7 @@ int main()
 
 	int socket_creation_result = (server_fd = socket(AF_INET, SOCK_STREAM, 0));
 	if (socket_creation_result == 0) {
+		log<LogLevel::FATAL>(logger, "Socket creation failed");
         std::cerr << "Socket creation failed\n";
         return -1;
     }
@@ -84,54 +89,68 @@ int main()
 
 	// NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
 	if (bind(server_fd, reinterpret_cast<struct sockaddr*>(&address), sizeof(address)) < 0) {
+		log<LogLevel::FATAL>(logger, "Bind failed");
         std::cerr << "Bind failed\n";
         return -1;
     }
 
 	if (listen(server_fd, 3) < 0) {
+		log<LogLevel::FATAL>(logger, "Listen failed");
         std::cerr << "Listen failed\n";
         return -1;
     }
 
+	log<LogLevel::INFO>(logger, std::format("Server listening on port {}", kPort));
 	std::cout << "Server listening on port " << kPort << "\n";
 
 	// NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
 	int client_accept_result = (client_fd = accept(server_fd, reinterpret_cast<struct sockaddr*>(&address), reinterpret_cast<socklen_t*>(&addrlen)));
 	if (client_accept_result < 0) {
+		log<LogLevel::FATAL>(logger, "Accept failed");
         std::cerr << "Accept failed\n";
         return -1;
     }
     
+	log<LogLevel::INFO>(logger, "Client connected");
     std::cout << "Client connected!\n";
 
     while (true) {
-        memset(static_cast<void*>(buffer), 0, kBufferSize);
+        memset(buffer.data(), 0, kBufferSize);
         
-        int64_t bytes_read = read(client_fd, static_cast<void*>(buffer), kBufferSize - 1);
+        int64_t bytes_read = read(client_fd, buffer.data(), kBufferSize - 1);
         
         if (bytes_read <= 0) {
             if (bytes_read == 0) {
+				log<LogLevel::INFO>(logger, "Client connected");
                 std::cout << "Client disconnected\n";
             } else {
+				log<LogLevel::ERROR>(logger, "Read error");
                 std::cerr << "Read error\n";
             }
             break;
         }
         
-        std::cout << "Received: " << static_cast<char*>(buffer) << "\n";
+		log<LogLevel::DEBUG>(logger, std::format("Recieved: {}", buffer.data()));
+        std::cout << "Received: " << buffer.data() << "\n";
         
 		Vector4 vec;
-		vec.deserialize(std::string(static_cast<char*>(buffer)));
+		vec.deserialize(std::string(buffer.data()));
 
 		// process vector according to type
 		processors[vec.getType()](vec);
 
         std::string response = vec.serialize();
         send(client_fd, response.c_str(), response.length(), 0);
+
+		log<LogLevel::DEBUG>(logger, std::format("Sent: {}", response));
+        std::cout << "Sent: " << response << "\n";
+
     }
 
 	close(client_fd);
+	log<LogLevel::DEBUG>(logger, "Closed client socket");
 	close(server_fd);
+	log<LogLevel::DEBUG>(logger, "Closed server socket");
 
 	return 0;
 }
