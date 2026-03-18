@@ -1,5 +1,6 @@
 #include <cstdint>
 #include <cstring>
+#include <functional>
 #include <iostream>
 #include "vector4.h"
 
@@ -7,9 +8,20 @@
 #include <netinet/in.h>
 #include <unistd.h>
 #include <arpa/inet.h>
+#include <unordered_map>
 
 const int kPort = 8080;
 const int kBufferSize = 1024;
+
+template <typename T>
+static void doMath(Vector4& vec)
+{
+	auto x = std::to_string(std::any_cast<T>(vec.getX()) + 2);
+	auto y = std::to_string(std::any_cast<T>(vec.getY()) - 2);
+	auto z = std::to_string(std::any_cast<T>(vec.getZ()) * 2);
+	auto w = std::to_string(std::any_cast<T>(vec.getW()) / 2);	
+	vec.setData(x, y, z, w);
+}
 
 int main()
 {
@@ -20,9 +32,34 @@ int main()
 	int addrlen = sizeof(address);
 	char buffer[kBufferSize] = {0};
 
-	// std::unordered_map<std::string, std::function<void(Vector4& input)>> processors = {
-	// 	{"bool", [](Vector4& vec){ vec.setData(vec., const std::string &yStr, const std::string &zStr, const std::string &wStr)}},	
-	// };
+
+	std::unordered_map<std::string, std::function<void(Vector4& input)>> processors = {
+		{"bool", 
+			[](Vector4& vec)
+			{
+				std::string x = std::to_string(!std::any_cast<bool>(vec.getX()));
+				std::string y = std::to_string(!std::any_cast<bool>(vec.getY()));
+				std::string z = std::to_string(!std::any_cast<bool>(vec.getZ()));
+				std::string w = std::to_string(!std::any_cast<bool>(vec.getW()));
+				vec.setData(x, y, z, w);
+			}
+		},
+		{"string", 
+			[](Vector4& vec)
+			{
+				auto x = "p_" + std::any_cast<std::string>(vec.getX());
+				auto y = "p_" + std::any_cast<std::string>(vec.getY());
+				auto z = "p_" + std::any_cast<std::string>(vec.getZ());
+				auto w = "p_" + std::any_cast<std::string>(vec.getW());
+				vec.setData(x, y, z, w);
+			}
+		},
+		{"char", doMath<char>},
+		{"int", doMath<int>},
+		{"uint", doMath<uint>},
+		{"float", doMath<float>},
+		{"double", doMath<double>},
+	};
 
 	int socket_creation_result = (server_fd = socket(AF_INET, SOCK_STREAM, 0));
 	if (socket_creation_result == 0) {
@@ -81,7 +118,8 @@ int main()
 		Vector4 vec;
 		vec.deserialize(std::string(static_cast<char*>(buffer)));
 
-		// perform data processing here
+		// process vector according to type
+		processors[vec.getType()](vec);
 
         std::string response = vec.serialize();
         send(client_fd, response.c_str(), response.length(), 0);
