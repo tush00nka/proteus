@@ -7,12 +7,13 @@
 #include <exception>
 #include <sstream>
 #include <string>
+#include <string_view>
 #include <vector>
 #include <iostream>
 
-Address::Address(const std::string& value, Logger& logger)
+Address::Address(std::string_view value, Logger& logger)
 {
-	std::string str = value;
+	std::string str(value); // is it how it's supposed to be done? i'm not sure
 	std::ranges::replace(str, '.', ' ');
 	std::ranges::replace(str, ':', ' ');
 

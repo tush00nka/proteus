@@ -103,8 +103,10 @@ int main()
 	log<LogLevel::INFO>(logger, std::format("Server listening on port {}", kPort));
 	std::cout << "Server listening on port " << kPort << "\n";
 
-	// NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
-	int client_accept_result = (client_fd = accept(server_fd, reinterpret_cast<struct sockaddr*>(&address), reinterpret_cast<socklen_t*>(&addrlen)));
+	int client_accept_result = (
+		// NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
+		client_fd = accept(server_fd, reinterpret_cast<struct sockaddr*>(&address), reinterpret_cast<socklen_t*>(&addrlen))
+	);
 	if (client_accept_result < 0) {
 		log<LogLevel::FATAL>(logger, "Accept failed");
         std::cerr << "Accept failed\n";

@@ -42,13 +42,12 @@ private:
 
 	// helper function to convert to any supported type
 	template<typename T>
-    T convertTo(const std::string& str) const;
+    T convertTo(std::string_view str) const;
 
 public:
 	Vector4();
-	explicit Vector4(std::string type);
-
-	bool supportsType(const std::string& type);
+	explicit Vector4(std::string_view type);
+	bool supportsType(std::string_view type);
 
 	[[nodiscard]] std::array<std::string, kSupportedTypesSize> getSupporedTypes() const;
 
@@ -57,15 +56,15 @@ public:
 		return this->_type;
 	}
 
-	void setType(std::string type)
+	void setType(std::string_view type)
 	{
-		this->_type = std::move(type);
+		this->_type = type;
 		setData("0", "0", "0", "0");
 	}
 
 	void print(IConsole& console);
 	std::string sprint();
-    bool setData(const std::string& xStr, const std::string& yStr, const std::string& zStr, const std::string& wStr);
+    bool setData(std::string_view xStr, std::string_view yStr, std::string_view zStr, std::string_view wStr);
 	
 	std::any getX()
 	{
@@ -88,5 +87,5 @@ public:
 	}
 
 	std::string serialize();
-	bool deserialize(const std::string& json);
+	bool deserialize(std::string_view json);
 };

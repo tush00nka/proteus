@@ -41,10 +41,10 @@ std::ostream& operator<<(std::ostream& os, const std::any& value) {
     return os << "unknown_type(" << value.type().name() << ")";
 }
 
-std::vector<std::string> split(const std::string& value, char delim) {
+std::vector<std::string> split(std::string_view value, char delim) {
 	std::vector<std::string> tokens {};
 
-	std::istringstream token_stream(value);
+	std::istringstream token_stream((std::string(value)));
 	std::string token;
 	while(std::getline(token_stream, token, delim))
 	{
@@ -55,19 +55,21 @@ std::vector<std::string> split(const std::string& value, char delim) {
 }
 
 // Trim from start (left)
-std::string ltrim(const std::string& str, const std::string& toTrim) {
-    size_t start = str.find_first_not_of(toTrim);
-    return (start == std::string::npos) ? "" : str.substr(start);
+std::string ltrim(std::string_view str, std::string_view toTrim) {
+	std::string s(str);
+    size_t start = s.find_first_not_of(toTrim);
+    return (start == std::string::npos) ? "" : s.substr(start);
 }
 
 // Trim from end (right)
-std::string rtrim(const std::string& str, const std::string& toTrim) {
-    size_t end = str.find_last_not_of(toTrim);
-    return (end == std::string::npos) ? "" : str.substr(0, end + 1);
+std::string rtrim(std::string_view str, std::string_view toTrim) {
+	std::string s(str);
+    size_t end = s.find_last_not_of(toTrim);
+    return (end == std::string::npos) ? "" : s.substr(0, end + 1);
 }
 
 // Trim from both ends
-std::string trim(const std::string& str, const std::string& toTrim) {
+std::string trim(std::string_view str, std::string_view toTrim) {
     return rtrim(ltrim(str, toTrim), toTrim);
 }
 

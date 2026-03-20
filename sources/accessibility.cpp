@@ -25,7 +25,7 @@ static int connectWrapper(int sock, const AddrType& addr)
 }
 
 // if at least one port asa available, we return true, otherwise false
-bool ConnectionTest::check(const std::string& address, std::vector<std::string>& ports, Logger& logger)
+bool ConnectionTest::check(std::string_view address, std::vector<std::string>& ports, Logger& logger)
 {
 	auto addr = Address(address, logger);
 	
@@ -74,7 +74,7 @@ bool ConnectionTest::check(const std::string& address, std::vector<std::string>&
 	return false;
 }
 
-bool ResourceTest::check(const std::string& path, std::vector<std::string>& filenames, Logger&  /*logger*/) 
+bool ResourceTest::check(std::string_view path, std::vector<std::string>& filenames, Logger&  /*logger*/) 
 {
 	std::unordered_map<std::string, size_t> appearances; 
 

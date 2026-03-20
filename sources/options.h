@@ -1,8 +1,6 @@
 #include "address.h"
 #include "logger.h"
 #include <memory>
-#include <string>
-#include <utility>
 
 #pragma once
 
@@ -23,8 +21,8 @@ public:
 	Options(int argc, char ** argv, Logger& logger);
 	void errorWithMessage(std::string_view program_name, std::string_view message, Logger& logger);
 
-	[[nodiscard]] std::string getUsername() { return this->_username; }
-	void setUsername(std::string username) { this->_username = std::move(username); }
+	[[nodiscard]] std::string_view getUsername() { return this->_username; }
+	void setUsername(std::string_view username) { this->_username = username; }
 
 	[[nodiscard]] bool getShouldExit() const { return this->_should_exit; }
 	void setShouldExit() { this->_should_exit = !this->_should_exit; }

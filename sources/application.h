@@ -11,17 +11,17 @@
 const size_t kInputVectorArgc = 5;
 const size_t kAddVectorArgc = 6;
 
-using command = std::function<void(DataPool& data, std::vector<std::string>& commandArgs, Options& opts, IConsole& console, Logger& logger, TCPClient& client)>;
+using command = std::function<void(DataPool& data, std::vector<std::string_view>& commandArgs, Options& opts, IConsole& console, Logger& logger, TCPClient& client)>;
 
-void inputType        (DataPool& data, std::vector<std::string>& commandArgs, Options& opts, IConsole& console, Logger& logger, TCPClient& client);
-void inputVec         (DataPool& data, std::vector<std::string>& commandArgs, Options& opts, IConsole& console, Logger& logger, TCPClient& client);
-void addVec           (DataPool& data, std::vector<std::string>& commandArgs, Options& opts, IConsole& console, Logger& logger, TCPClient& client);
-void setUsername      (DataPool& data, std::vector<std::string>& commandArgs, Options& opts, IConsole& console, Logger& logger, TCPClient& client);
-void quitProgram      (DataPool& data, std::vector<std::string>& commandArgs, Options& opts, IConsole& console, Logger& logger, TCPClient& client);
-void help             (DataPool& data, std::vector<std::string>& commandArgs, Options& opts, IConsole& console, Logger& logger, TCPClient& client);
-void popVec           (DataPool& data, std::vector<std::string>& commandArgs, Options& opts, IConsole& console, Logger& logger, TCPClient& client);
-void testAccessibility(DataPool& data, std::vector<std::string>& commandArgs, Options& opts, IConsole& console, Logger& logger, TCPClient& client);
-void sendToServer     (DataPool& data, std::vector<std::string>& commandArgs, Options& opts, IConsole& console, Logger& logger, TCPClient& client);
+void inputType        (DataPool& data, std::vector<std::string_view>& commandArgs, Options& opts, IConsole& console, Logger& logger, TCPClient& client);
+void inputVec         (DataPool& data, std::vector<std::string_view>& commandArgs, Options& opts, IConsole& console, Logger& logger, TCPClient& client);
+void addVec           (DataPool& data, std::vector<std::string_view>& commandArgs, Options& opts, IConsole& console, Logger& logger, TCPClient& client);
+void setUsername      (DataPool& data, std::vector<std::string_view>& commandArgs, Options& opts, IConsole& console, Logger& logger, TCPClient& client);
+void quitProgram      (DataPool& data, std::vector<std::string_view>& commandArgs, Options& opts, IConsole& console, Logger& logger, TCPClient& client);
+void help             (DataPool& data, std::vector<std::string_view>& commandArgs, Options& opts, IConsole& console, Logger& logger, TCPClient& client);
+void popVec           (DataPool& data, std::vector<std::string_view>& commandArgs, Options& opts, IConsole& console, Logger& logger, TCPClient& client);
+void testAccessibility(DataPool& data, std::vector<std::string_view>& commandArgs, Options& opts, IConsole& console, Logger& logger, TCPClient& client);
+void sendToServer     (DataPool& data, std::vector<std::string_view>& commandArgs, Options& opts, IConsole& console, Logger& logger, TCPClient& client);
 
 static void clear(IConsole& console)
 {
@@ -36,14 +36,14 @@ private:
 public:
 	MenuItem() = default;
     explicit MenuItem(command command);
-    bool execute(std::vector<std::string>& command_args, Options& opts, DataPool& data, IConsole& console, Logger& logger, TCPClient& client);
+    bool execute(std::vector<std::string_view>& command_args, Options& opts, DataPool& data, IConsole& console, Logger& logger, TCPClient& client);
 };
 
 class Menu {
 private:
-    std::unordered_map<std::string, MenuItem> _items;
+    std::unordered_map<std::string_view, MenuItem> _items;
 public:
     Menu();
-    bool execute(const std::string& command_text, std::vector<std::string>& command_args, Options& opts, DataPool& data, IConsole& console, Logger& logger, TCPClient& client);
-    bool exists(const std::string& command_text);
+    bool execute(std::string_view command_text, std::vector<std::string_view>& command_args, Options& opts, DataPool& data, IConsole& console, Logger& logger, TCPClient& client);
+    bool exists(std::string_view command_text);
 };

@@ -1,5 +1,7 @@
+#include <cstdio>
 #include <iostream>
 #include <memory>
+#include <print>
 #include <span>
 #include "options.h"
 #include "address.h"
@@ -7,13 +9,13 @@
 
 void Options::usage(std::string_view program_name)
 {
-	std::cout << "USAGE:\n";
-	std::cout << program_name << " [OPTIONS]" << "\n";
-	std::cout << "\t" << "-a ADDRESS" << "\n";
-	std::cout << "\t" << "-p PORT" << "\n";
-	std::cout << "\t" << "-r ROLE" << "\n";
-	std::cout << "\t" << "-i INDEX" << "\n";
-	std::cout << "\t" << "-L LIB" << "\n";
+	std::println("USAGE:");
+	std::println("{} [OPTIONS]", program_name);
+	std::println("\t-a ADDRESS");
+	std::println("\t-p PORT");
+	std::println("\t-r ROLE");
+	std::println("\t-i INDEX");
+	std::println("\t-L LIB");
 }
 
 void Options::errorWithMessage(std::string_view program_name, std::string_view message, Logger& logger)
@@ -137,6 +139,7 @@ Options::Options(int argc, char ** argv, Logger& logger) : _address(nullptr), _s
 	if (this->_address == nullptr)
 	{
 		log<LogLevel::WARNING>(logger, "Address (-a) and/or Port (-p) are not set");
+		this->_address = std::make_unique<Address>(Address{});
 	}
 
 	if (this->_role.size() <= 0)
