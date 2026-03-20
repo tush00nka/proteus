@@ -43,7 +43,7 @@ private:
 
 public:
 	Address() = default;
-	explicit Address(const std::string& value, Logger& logger);
+	explicit Address(std::string_view value, Logger& logger);
 	explicit Address(std::array<uint8_t, 4>&, uint16_t port = kDefaultPort);
 
 	void setPort(uint16_t port)

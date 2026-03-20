@@ -6,31 +6,34 @@
 #include <iostream>
 #include <sstream>
 #include <string>
-#include <utility>
 #include <vector>
 
 Vector4::Vector4(): _type("int"), _x(0), _y(0), _z(0), _w(0) {
 	this->_supported_types = {"int",  "uint",   "float", "double", "char", "string", "bool"};
 }
 
-Vector4::Vector4(std::string type): _type(std::move(type)) {
+Vector4::Vector4(std::string_view type): _type(type) {
 	this->_supported_types = {"int",  "uint",   "float", "double", "char", "string", "bool"};
 	this->setData("0", "0", "0", "0");
 }
 
 template<typename T>
-T Vector4::convertTo(const std::string& str) const {
+T Vector4::convertTo(std::string_view str) const {
 	if constexpr (std::is_same_v<T, int>) {
-		return std::stoi(str);
+		std::string s(str);
+		return std::stoi(s);
 	}
 	else if constexpr (std::is_same_v<T, unsigned int>) {
-		return static_cast<unsigned int>(std::stoul(str));
+		std::string s(str);
+		return static_cast<unsigned int>(std::stoul(s));
 	}
 	else if constexpr (std::is_same_v<T, float>) {
-		return std::stof(str);
+		std::string s(str);
+		return std::stof(s);
 	}
 	else if constexpr (std::is_same_v<T, double>) {
-		return std::stod(str);
+		std::string s(str);
+		return std::stod(s);
 	}
 	else if constexpr (std::is_same_v<T, char>) {
 		if (str.empty()) return '\0';
@@ -40,16 +43,16 @@ T Vector4::convertTo(const std::string& str) const {
 		return str == "true" || str == "1" || str == "yes";
 	}
 	else if constexpr (std::is_same_v<T, std::string>) {
-		return str;
+		return std::string(str);
 	}
 	else {
 		return T{};
 	}
 }
 
-bool Vector4::supportsType(const std::string& type)
+bool Vector4::supportsType(std::string_view type)
 {
-	return std::ranges::any_of(this->_supported_types, [type](const std::string& t){return t == type; });
+	return std::ranges::any_of(this->_supported_types, [type](std::string_view t){return t == type; });
 }
 
 std::array<std::string, kSupportedTypesSize> Vector4::getSupporedTypes() const
@@ -72,7 +75,7 @@ std::string Vector4::sprint()
 }
 
 
-bool Vector4::setData(const std::string& xStr, const std::string& yStr, const std::string& zStr, const std::string& wStr)
+bool Vector4::setData(std::string_view xStr, std::string_view yStr, std::string_view zStr, std::string_view wStr)
 {
 	try
 	{
@@ -147,7 +150,7 @@ std::string Vector4::serialize()
 	return oss.str();
 }
 
-bool Vector4::deserialize(const std::string& json)
+bool Vector4::deserialize(std::string_view json)
 {
 	std::vector<std::string> vars = split(json, ',');
 
