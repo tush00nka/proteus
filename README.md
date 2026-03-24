@@ -57,3 +57,4 @@ ctest ./proteus_tests
 - [x] Server-side data processing
 - [x] Logger for Server
 - [ ] Benchmarking
+- [x] Multithreaded server
