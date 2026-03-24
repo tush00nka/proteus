@@ -1,12 +1,10 @@
 #include "address.h"
-#include "logger.h"
-#include <memory>
 
 #pragma once
 
 class Options {
 private:
-	std::unique_ptr<Address> _address; // _port is included in Address class
+	std::optional<Address> _address; // _port is included in Address class
 	std::string _role;
 	std::size_t _index;
 	std::string _lib;
@@ -18,10 +16,10 @@ private:
 
 	static void usage(std::string_view program_name);
 public:
-	Options(int argc, char ** argv, Logger& logger);
-	void errorWithMessage(std::string_view program_name, std::string_view message, Logger& logger);
+	Options(int argc, char ** argv);
+	void errorWithMessage(std::string_view program_name, std::string_view message);
 
-	[[nodiscard]] std::string_view getUsername() { return this->_username; }
+	[[nodiscard]] std::string_view getUsername() const { return this->_username; }
 	void setUsername(std::string_view username) { this->_username = username; }
 
 	[[nodiscard]] bool getShouldExit() const { return this->_should_exit; }

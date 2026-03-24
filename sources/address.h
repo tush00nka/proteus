@@ -1,6 +1,5 @@
 #pragma once
 
-#include "logger.h"
 #include <cstdint>
 #include <array>
 #include <string>
@@ -38,12 +37,12 @@ const uint16_t kMaxPort { 65535 };
  */
 class Address {
 private:
-	uint16_t _port {};
 	std::array<uint8_t, 4> _address {};
+	uint16_t _port {};
 
 public:
 	Address() = default;
-	explicit Address(std::string_view value, Logger& logger);
+	explicit Address(std::string_view value);
 	explicit Address(std::array<uint8_t, 4>&, uint16_t port = kDefaultPort);
 
 	void setPort(uint16_t port)

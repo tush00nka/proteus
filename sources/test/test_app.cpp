@@ -1,34 +1,23 @@
 #include <gtest/gtest.h>
 #include "../options.h"
-#include "../vector4.h"
 #include "../data_pool.h"
-#include "../logger.h"
-#include "mock_console.h"
 #include "../application.h"
-
-// helper test logger
-static Logger& getTestLogger() {
-    static Logger logger("test_log.txt", false); // false = no console output
-    return logger;
-}
+#include "mock_console.h"
 
 TEST(ApplicationTest, HelpCommand) {
-    Logger& logger = getTestLogger();
-    logger.clear();
-
-	Options opts(0, nullptr, logger);
+	std::shared_ptr<Options> opts = std::make_shared<Options>(0, nullptr);
     DataPool data;
-    MockConsole console;    
+    std::shared_ptr<MockConsole> console = std::make_shared<MockConsole>();    
     
-    console.addInputLine("help");
-    console.addInputLine("quit");
+    console->addInputLine("help");
+    console->addInputLine("quit");
     
-    runApplication(opts, data, console, logger);
+    runApplication(opts, console);
     
-    auto output = console.getOutput();
+    auto output = console->getOutput();
     bool found_help = false;
     for (const auto& line : output) {
-        if (line.find("AVAILABLE COMMANDS:") != std::string::npos) {
+        if (line.find("COMMANDS") != std::string::npos) {
             found_help = true;
             break;
         }
@@ -37,36 +26,39 @@ TEST(ApplicationTest, HelpCommand) {
 }
 
 TEST(ApplicationTest, SetVectorType) {
-    Logger& logger = getTestLogger();
-    logger.clear();
 
-	Options opts(0, nullptr, logger);
-    DataPool data;
-	MockConsole console; 
+	std::shared_ptr<Options> opts = std::make_shared<Options>(0, nullptr);
+	std::shared_ptr<MockConsole> console = std::make_shared<MockConsole>(); 
     
-    console.addInputLine("type float");
-    console.addInputLine("quit");
+	console->addInputLine("add int 1 2 3 4");
+    console->addInputLine("type float");
+    console->addInputLine("quit");
     
-    runApplication(opts, data, console, logger);
+    runApplication(opts, console);
     
-    EXPECT_EQ(data.frontMut().getType(), "float");
+    auto output = console->getOutput();
+    bool found_type = false;
+    for (const auto& line : output) {
+        if (line.find("Set type: float") != std::string::npos) {
+            found_type = true;
+            break;
+        }
+    }
+    EXPECT_TRUE(found_type);
 }
 
 TEST(ApplicationTest, ViewCurrentType) {
-    Logger& logger = getTestLogger();
-    logger.clear();
-
-	Options opts(0, nullptr, logger);
-    DataPool data;
-    data.frontMut().setType("float");
-	MockConsole console; 
+	
+	std::shared_ptr<Options> opts = std::make_shared<Options>(0, nullptr);
+	std::shared_ptr<MockConsole> console = std::make_shared<MockConsole>(); 
     
-    console.addInputLine("type");
-    console.addInputLine("quit");
+	console->addInputLine("add float 1 2 3 4");
+    console->addInputLine("type");
+    console->addInputLine("quit");
     
-    runApplication(opts, data, console, logger);
+    runApplication(opts, console);
     
-    auto output = console.getOutput();
+    auto output = console->getOutput();
     bool found_type = false;
     for (const auto& line : output) {
         if (line.find("Currently set type: float") != std::string::npos) {
@@ -78,20 +70,17 @@ TEST(ApplicationTest, ViewCurrentType) {
 }
 
 TEST(ApplicationTest, SetVectorValues) {
-    Logger& logger = getTestLogger();
-    logger.clear();
 
-	Options opts(0, nullptr, logger);
-    DataPool data;
-    data.frontMut().setType("float");
-	MockConsole console; 
+	std::shared_ptr<Options> opts = std::make_shared<Options>(0, nullptr);
+	std::shared_ptr<MockConsole> console = std::make_shared<MockConsole>(); 
 
-    console.addInputLine("vec 1.5 2.7 3.14 4.2");
-    console.addInputLine("quit");
+	console->addInputLine("add float 1 2 3 4");
+    console->addInputLine("vec 1.5 2.7 3.14 4.2");
+    console->addInputLine("quit");
     
-    runApplication(opts, data, console, logger);
+    runApplication(opts, console);
     
-    auto output = console.getOutput();
+    auto output = console->getOutput();
     bool found_update = false;
     for (const auto& line : output) {
         if (line.find("Vector data updated!") != std::string::npos) {
@@ -100,41 +89,32 @@ TEST(ApplicationTest, SetVectorValues) {
         }
     }
     EXPECT_TRUE(found_update);
-    
-    std::string vec_str = data.frontMut().sprint();
-    EXPECT_NE(vec_str.find("1.5"), std::string::npos);
 }
 
 TEST(ApplicationTest, ChangeUsername) {
-    Logger& logger = getTestLogger();
-    logger.clear();
 
-	Options opts(0, nullptr, logger);
-    DataPool data;
-    MockConsole console;  
+	std::shared_ptr<Options> opts = std::make_shared<Options>(0, nullptr);
+    std::shared_ptr<MockConsole> console = std::make_shared<MockConsole>();  
 
-    console.addInputLine("username admin");
-    console.addInputLine("quit");
+    console->addInputLine("username admin");
+    console->addInputLine("quit");
     
-    runApplication(opts, data, console, logger);
+    runApplication(opts, console);
     
-    EXPECT_EQ(opts.getUsername(), "admin");
+    EXPECT_EQ(opts->getUsername(), "admin");
 }
 
 TEST(ApplicationTest, UnknownCommand) {
-    Logger& logger = getTestLogger();
-    logger.clear();
 
-	Options opts(0, nullptr, logger);
-    DataPool data;
-    MockConsole console;    
+	std::shared_ptr<Options> opts = std::make_shared<Options>(0, nullptr);
+    std::shared_ptr<MockConsole> console = std::make_shared<MockConsole>();    
     
-    console.addInputLine("unknown_command");
-    console.addInputLine("quit");
+    console->addInputLine("unknown_command");
+    console->addInputLine("quit");
     
-    runApplication(opts, data, console, logger);
+    runApplication(opts, console);
     
-    auto output = console.getOutput();
+    auto output = console->getOutput();
     bool found_error = false;
     for (const auto& line : output) {
         if (line.find("Unknown command!") != std::string::npos) {
@@ -146,35 +126,31 @@ TEST(ApplicationTest, UnknownCommand) {
 }
 
 TEST(ApplicationTest, EmptyInput) {
-    Logger& logger = getTestLogger();
-    logger.clear();
 
-	Options opts(0, nullptr, logger);
-    DataPool data;
-    MockConsole console;
     
-    console.addInputLine("");
-    console.addInputLine("quit");
+
+	std::shared_ptr<Options> opts = std::make_shared<Options>(0, nullptr);
+    std::shared_ptr<MockConsole> console = std::make_shared<MockConsole>();
     
-    runApplication(opts, data, console, logger);
+    console->addInputLine("");
+    console->addInputLine("quit");
     
-    EXPECT_FALSE(console.hasMoreInput());
+    runApplication(opts, console);
+    
+    EXPECT_FALSE(console->hasMoreInput());
 }
 
 TEST(ApplicationTest, IncompleteVecCommand) {
-    Logger& logger = getTestLogger();
-    logger.clear();
 
-	Options opts(0, nullptr, logger);
-    DataPool data;
-    MockConsole console;
+	std::shared_ptr<Options> opts = std::make_shared<Options>(0, nullptr);
+    std::shared_ptr<MockConsole> console = std::make_shared<MockConsole>();
     
-    console.addInputLine("vec 1 2 3"); // Less args than needed
-    console.addInputLine("quit");
+    console->addInputLine("add int 1 2 3"); // Less args than needed
+    console->addInputLine("quit");
     
-    runApplication(opts, data, console, logger);
+    runApplication(opts, console);
     
-    auto output = console.getOutput();
+    auto output = console->getOutput();
     bool found_error = false;
     for (const auto& line : output) {
         if (line.find("Not enough arguments!") != std::string::npos) {

@@ -18,18 +18,18 @@ private:
 	int _sock {-1};
 public:
 	TCPClient() = default;
-        TCPClient(const TCPClient &) = default;
-        TCPClient(TCPClient &&) = delete;
-        TCPClient &operator=(const TCPClient &) = default;
-        TCPClient &operator=(TCPClient &&) = delete;
-        ~TCPClient() { disconnect(); }
+	TCPClient(const TCPClient &) = default;
+	TCPClient(TCPClient &&) = delete;
+	TCPClient &operator=(const TCPClient &) = default;
+	TCPClient &operator=(TCPClient &&) = delete;
+	~TCPClient() { disconnect(); }
 
-        bool connect(Address &address, Logger& logger)
+    bool connect(Address &address)
 	{
 		_sock = socket(AF_INET, SOCK_STREAM, 0); 
 		if (_sock < 0)
 		{
-			log<LogLevel::ERROR>(logger, "Failed to create socket");
+			log<LogLevel::ERROR>("Failed to create socket");
 			return false;
 		}
 
@@ -40,19 +40,19 @@ public:
 		const std::string address_string = address.getAddressString();
 
 		if (inet_pton(AF_INET, address_string.c_str(), &serv_addr.sin_addr) <= 0) {
-			log<LogLevel::ERROR>(logger, "Invalid address: " + address_string);
+			log<LogLevel::ERROR>("Invalid address: " + address_string);
             close(_sock);
             return false;
         }
 
 		// NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
 		if (::connect(_sock, reinterpret_cast<struct sockaddr*>(&serv_addr), sizeof(serv_addr)) < 0) {
-			log<LogLevel::ERROR>(logger, "Connection failed to " + address_string + ":" + std::to_string(address.getPort()));	
+			log<LogLevel::ERROR>("Connection failed to " + address_string + ":" + std::to_string(address.getPort()));	
 			close(_sock);
             return false;
         }
 
-		log<LogLevel::INFO>(logger, "Connected to " + address_string + ":" + std::to_string(address.getPort()));	
+		log<LogLevel::INFO>("Connected to " + address_string + ":" + std::to_string(address.getPort()));	
 		return true;
 	}
 
@@ -65,27 +65,27 @@ public:
 		}
 	}
 
-	bool sendMessage(const std::string& message, Logger& logger) const
+	bool sendMessage(const std::string& message) const
 	{
 		if (_sock < 0)
 		{
-			log<LogLevel::ERROR>(logger, "Not connected to server");
+			log<LogLevel::ERROR>("Not connected to server");
 			return false;
 		}
 
 		ssize_t bytes_sent = send(_sock, message.c_str(), message.length(), 0);
 		if (bytes_sent < 0)
 		{
-			log<LogLevel::ERROR>(logger, "Failed to send message");
+			log<LogLevel::ERROR>("Failed to send message");
 			return false;
 		}
 
-		log<LogLevel::INFO>(logger, "Sent " + std::to_string(bytes_sent) + " bytes: " + message);
+		log<LogLevel::INFO>("Sent " + std::to_string(bytes_sent) + " bytes: " + message);
 
 		return true;
 	}
 
-	std::string receiveResponse(Logger& logger) {
+	std::string receiveResponse() {
         if (_sock == -1) {
             return "";
         }
@@ -95,12 +95,12 @@ public:
         ssize_t bytes_read = read(_sock, static_cast<void*>(buffer), kBufferSize - 1);
         
         if (bytes_read < 0) {
-			log<LogLevel::ERROR>(logger, "Failed to recieve response");
+			log<LogLevel::ERROR>("Failed to recieve response");
 			return "";
         } 
 		
 		if (bytes_read == 0) {
-			log<LogLevel::ERROR>(logger, "Server disconnected");
+			log<LogLevel::ERROR>("Server disconnected");
             disconnect();
             return "";
         }
@@ -109,12 +109,12 @@ public:
         return response;
     }
 
-	std::string sendAndRecieve(const std::string& message, Logger& logger)
+	std::string sendAndRecieve(const std::string& message)
 	{
-		if (sendMessage(message, logger))
+		if (sendMessage(message))
 		{
-			std::string response = receiveResponse(logger); 
-			log<LogLevel::INFO>(logger, "Got response from server: " + response);
+			std::string response = receiveResponse(); 
+			log<LogLevel::INFO>("Got response from server: " + response);
 			return response;
 		}
 

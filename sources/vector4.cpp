@@ -18,7 +18,7 @@ Vector4::Vector4(std::string_view type): _type(type) {
 }
 
 template<typename T>
-T Vector4::convertTo(std::string_view str) const {
+T convertTo(std::string_view str) {
 	if constexpr (std::is_same_v<T, int>) {
 		std::string s(str);
 		return std::stoi(s);
@@ -145,14 +145,14 @@ bool Vector4::setData(std::string_view xStr, std::string_view yStr, std::string_
 std::string Vector4::serialize()
 {
 	std::ostringstream oss;
-	oss << "{ type: \""<< _type << "\", x: " << this->_x << ", y: " << this->_y << ", z: " << this->_z << ", w: " << this->_w << " }";
-
+	oss << R"({ "type": ")"<< _type << R"(", "x": )" << this->_x << ", \"y\": " << this->_y << ", \"z\": " << this->_z << ", \"w\": " << this->_w << " }";
 	return oss.str();
 }
 
-bool Vector4::deserialize(std::string_view json)
+// Поправил формат, но от греха подальше всё же убрал упоминания json
+bool Vector4::deserialize(std::string_view formatted)
 {
-	std::vector<std::string> vars = split(json, ',');
+	std::vector<std::string> vars = split(formatted, ',');
 
 	std::vector<std::string> clean {};
 
@@ -162,9 +162,10 @@ bool Vector4::deserialize(std::string_view json)
 		std::ranges::replace(var, '{', ' ');
 		std::vector<std::string> parts = split(var, ':');
 
-		for (auto &part : parts)
+		for (auto const &part : parts)
 		{
-			clean.push_back(trim(part));
+			std::string token = trim(trim(part), "\"");
+			clean.push_back(token);
 		}
 	}
 
@@ -177,7 +178,9 @@ bool Vector4::deserialize(std::string_view json)
 	{
 		if (clean[i] == "type")
 		{
-			setType(trim(clean[i+1], "\""));
+			if (!setType(trim(clean[i+1], "\""))) {
+				return false;
+			}
 			i++;
 			continue;
 		}

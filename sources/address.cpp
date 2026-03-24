@@ -11,7 +11,7 @@
 #include <vector>
 #include <iostream>
 
-Address::Address(std::string_view value, Logger& logger)
+Address::Address(std::string_view value)
 {
 	std::string str(value); // is it how it's supposed to be done? i'm not sure
 	std::ranges::replace(str, '.', ' ');
@@ -19,8 +19,8 @@ Address::Address(std::string_view value, Logger& logger)
 
 	std::vector<int> parts;
 	std::istringstream iss(str);
-	int num { 0 };
 	try {
+		int num = 0;
 		while (iss >> num)
 		{
 			parts.push_back(num);
@@ -28,7 +28,7 @@ Address::Address(std::string_view value, Logger& logger)
 	}
 	catch (std::exception& e)
 	{
-		log<LogLevel::FATAL>(logger, "Failed to parse address string");
+		log<LogLevel::FATAL>("Failed to parse address string");
 		return;
 	}
 
@@ -48,7 +48,7 @@ Address::Address(std::string_view value, Logger& logger)
 		parts[3] < 0 || parts[3] > kIpOctet)
 	{
 		_address = std::array<uint8_t, 4> {0,0,0,0};
-		log<LogLevel::ERROR>(logger, "IP octet out of range (0-255)");
+		log<LogLevel::ERROR>("IP octet out of range (0-255)");
 		return;
 	}
 
