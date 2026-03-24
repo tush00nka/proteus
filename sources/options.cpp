@@ -1,6 +1,6 @@
 #include <cstdio>
 #include <iostream>
-#include <memory>
+#include <optional>
 #include <print>
 #include <span>
 #include "options.h"
@@ -18,9 +18,9 @@ void Options::usage(std::string_view program_name)
 	std::println("\t-L LIB");
 }
 
-void Options::errorWithMessage(std::string_view program_name, std::string_view message, Logger& logger)
+void Options::errorWithMessage(std::string_view program_name, std::string_view message)
 {
-	log<LogLevel::FATAL>(logger, message);
+	log<LogLevel::FATAL>(message);
 	std::cout << message << '\n';
 	usage(program_name);
 
@@ -28,7 +28,7 @@ void Options::errorWithMessage(std::string_view program_name, std::string_view m
 	_status = 1;
 }
 
-Options::Options(int argc, char ** argv, Logger& logger) : _address(nullptr), _status(0), _should_exit(false)
+Options::Options(int argc, char ** argv) : _address(std::nullopt), _status(0), _should_exit(false)
 {
 	for (size_t i = 1; i < argc; ++i)
 	{
@@ -37,14 +37,14 @@ Options::Options(int argc, char ** argv, Logger& logger) : _address(nullptr), _s
 		
 		if (i+1 >= argc)
 		{
-			errorWithMessage(args[0], "Flag `"+arg+"` doesn't seem to have a valid option set!", logger);
+			errorWithMessage(args[0], "Flag `"+arg+"` doesn't seem to have a valid option set!");
 			break;
 		}
 
 		std::string next_arg = args[i+1];
 		if(next_arg.starts_with('-'))
 		{
-			errorWithMessage(args[0], "Flag `"+arg+"` doesn't seem to have a valid option set!", logger);
+			errorWithMessage(args[0], "Flag `"+arg+"` doesn't seem to have a valid option set!");
 			break;
 		}
 
@@ -66,10 +66,10 @@ Options::Options(int argc, char ** argv, Logger& logger) : _address(nullptr), _s
 				counter++;
 			}
 
-			log<LogLevel::DEBUG>(logger, std::format("Got {} Address parts: {}", counter-1, address_accum));
+			log<LogLevel::DEBUG>(std::format("Got {} Address parts: {}", counter-1, address_accum));
 
-			this->_address = std::make_unique<Address>(Address(address_accum, logger));
-			log<LogLevel::INFO>(logger, "Address is set to: "+this->_address->sprint());
+			this->_address = (Address(address_accum));
+			log<LogLevel::INFO>("Address is set to: "+this->_address->sprint());
 			i+=counter-1;
 
 			continue;
@@ -77,9 +77,9 @@ Options::Options(int argc, char ** argv, Logger& logger) : _address(nullptr), _s
 
 		if (arg == "-p")
 		{
-			if (this->_address == nullptr)
+			if (this->_address == std::nullopt)
 			{
-				this->_address = std::make_unique<Address>(Address());
+				this->_address = Address();
 			}
 
 			try
@@ -88,11 +88,11 @@ Options::Options(int argc, char ** argv, Logger& logger) : _address(nullptr), _s
 			}
 			catch(std::exception& e)
 			{
-				errorWithMessage(args[0], std::format("Failed to parse `-p` flag argument: {}", e.what()), logger);
+				errorWithMessage(args[0], std::format("Failed to parse `-p` flag argument: {}", e.what()));
 				break;
 			}	
 
-			log<LogLevel::INFO>(logger, "Address is set to: "+this->_address->sprint()+" (via -p flag)");
+			log<LogLevel::INFO>("Address is set to: "+this->_address->sprint()+" (via -p flag)");
 			i++;
 			
 			continue;
@@ -113,7 +113,7 @@ Options::Options(int argc, char ** argv, Logger& logger) : _address(nullptr), _s
 			}
 			catch(std::exception& e)
 			{
-				errorWithMessage(args[0], std::format("Failed to parse `-i` flag argument: {}", e.what()), logger);
+				errorWithMessage(args[0], std::format("Failed to parse `-i` flag argument: {}", e.what()));
 				break;
 			}	
 			i++;
@@ -136,10 +136,10 @@ Options::Options(int argc, char ** argv, Logger& logger) : _address(nullptr), _s
 		break;
 	}
 
-	if (this->_address == nullptr)
+	if (this->_address == std::nullopt)
 	{
-		log<LogLevel::WARNING>(logger, "Address (-a) and/or Port (-p) are not set");
-		this->_address = std::make_unique<Address>(Address{});
+		log<LogLevel::WARNING>("Address (-a) and/or Port (-p) are not set");
+		this->_address = Address();
 	}
 
 	if (this->_role.size() <= 0)

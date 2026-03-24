@@ -1,7 +1,7 @@
+#include <memory>
 #include <string>
 
 #include "console_interface.h"
-#include "data_pool.h"
 #include "logger.h"
 #include "options.h"
 #include "application.h"
@@ -11,16 +11,15 @@ using std::string;
 
 int main(int argc, char ** argv)
 {	
-	Logger logger("proteus.log", true);
+	Logger::init("proteus.log", true);
+	Logger::clear();
 
-	logger.clear();
+	log<LogLevel::INFO>("App started");
 
-	log<LogLevel::INFO>(logger, "App started");
+	std::shared_ptr<RealConsole> console = std::make_shared<RealConsole>();
+	std::shared_ptr<Options> opts = std::make_shared<Options>(argc, argv); 
 
-	RealConsole console;
-	Options opts = Options(argc, argv, logger); 
+	Logger::shutdown();
 
-	DataPool data {};
-
-	return runApplication(opts, data, console, logger);
+	return runApplication(opts, console);
 }

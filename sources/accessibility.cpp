@@ -24,10 +24,10 @@ static int connectWrapper(int sock, const AddrType& addr)
 	return connect(sock, reinterpret_cast<const struct sockaddr*>(&addr), sizeof(addr));
 }
 
-// if at least one port asa available, we return true, otherwise false
-bool ConnectionTest::check(std::string_view address, std::vector<std::string>& ports, Logger& logger)
+// if at least one port is available, we return true, otherwise false
+bool ConnectionTest::check(std::string_view address, std::vector<std::string>& ports)
 {
-	auto addr = Address(address, logger);
+	auto addr = Address(address);
 	
 	for (const auto & port : ports)
 	{
@@ -54,7 +54,7 @@ bool ConnectionTest::check(std::string_view address, std::vector<std::string>& p
 		if (inet_pton_result <= 0)
 		{
 			const std::string_view msg = "Invalid address / Address not supported";
-			log<LogLevel::WARNING>(logger, msg);
+			log<LogLevel::WARNING>(msg);
 			close(sock);
 			continue;
 		}
@@ -62,19 +62,19 @@ bool ConnectionTest::check(std::string_view address, std::vector<std::string>& p
 		int sock_connection_result = connectWrapper(sock, serv_addr);
 		if (sock_connection_result == 0)
 		{
-			log<LogLevel::INFO>(logger, "Connected to: " + addr.getAddressString());
+			log<LogLevel::INFO>("Connected to: " + addr.getAddressString());
 			close(sock);
 			return true;
 		}	
 		
-		log<LogLevel::DEBUG>(logger, "Failed to connect to port: " + port);
+		log<LogLevel::DEBUG>("Failed to connect to port: " + port);
 		close(sock);
 	}
 
 	return false;
 }
 
-bool ResourceTest::check(std::string_view path, std::vector<std::string>& filenames, Logger&  /*logger*/) 
+bool ResourceTest::check(std::string_view path, std::vector<std::string>& filenames) 
 {
 	std::unordered_map<std::string, size_t> appearances; 
 

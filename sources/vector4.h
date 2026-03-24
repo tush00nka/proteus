@@ -40,10 +40,6 @@ private:
 	std::any _z;
 	std::any _w;
 
-	// helper function to convert to any supported type
-	template<typename T>
-    T convertTo(std::string_view str) const;
-
 public:
 	Vector4();
 	explicit Vector4(std::string_view type);
@@ -51,41 +47,34 @@ public:
 
 	[[nodiscard]] std::array<std::string, kSupportedTypesSize> getSupporedTypes() const;
 
-	std::string getType()
+	[[nodiscard]] std::string getType() const
 	{
 		return this->_type;
 	}
 
-	void setType(std::string_view type)
+	bool setType(std::string_view type)
 	{
-		this->_type = type;
-		setData("0", "0", "0", "0");
+		if (supportsType(type)) {
+			this->_type = type;
+			setData("0", "0", "0", "0");
+			return true;
+		}
+
+		return false;
 	}
 
 	void print(IConsole& console);
 	std::string sprint();
     bool setData(std::string_view xStr, std::string_view yStr, std::string_view zStr, std::string_view wStr);
 	
-	std::any getX()
-	{
-		return this->_x;
-	}
-
-	std::any getY()
-	{
-		return this->_y;
-	}
-
-	std::any getZ()
-	{
-		return this->_z;
-	}
-
-	std::any getW()
-	{
-		return this->_w;
+	std::array<std::any, 4> getData() {
+		return std::array {_x, _y, _z, _w};
 	}
 
 	std::string serialize();
-	bool deserialize(std::string_view json);
+	bool deserialize(std::string_view formatted);
 };
+
+// helper function to convert to any supported type
+template<typename T>
+T convertTo(std::string_view str);

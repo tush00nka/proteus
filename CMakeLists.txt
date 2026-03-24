@@ -7,7 +7,6 @@ set(SOURCES
 	sources/application.cpp
     sources/options.cpp 
     sources/vector4.cpp
-	sources/data_pool.cpp
 	sources/utils.cpp
 	sources/accessibility.cpp
 	sources/address.cpp

@@ -19,10 +19,11 @@ const int kBufferSize = 1024;
 template <typename T>
 static void doMath(Vector4& vec)
 {
-	auto x = std::to_string(std::any_cast<T>(vec.getX()) + 2);
-	auto y = std::to_string(std::any_cast<T>(vec.getY()) - 2);
-	auto z = std::to_string(std::any_cast<T>(vec.getZ()) * 2);
-	auto w = std::to_string(std::any_cast<T>(vec.getW()) / 2);	
+	auto data = vec.getData();
+	auto x = std::to_string(std::any_cast<T>(data[0]) + 2);
+	auto y = std::to_string(std::any_cast<T>(data[1]) - 2);
+	auto z = std::to_string(std::any_cast<T>(data[2]) * 2);
+	auto w = std::to_string(std::any_cast<T>(data[3]) / 2);	
 	vec.setData(x, y, z, w);
 }
 
@@ -31,34 +32,35 @@ int main()
 	int server_fd = 0;
 	int client_fd = 0;
 	struct sockaddr_in address {};
-	int opt = 1;
 	int addrlen = sizeof(address);
 	std::array<char, kBufferSize> buffer = {0};
 
-	Logger logger("proteus_server.log", true);
-	logger.clear("proteus_server.log");
+	Logger::init("proteus_server.log", true);
+	Logger::clear("proteus_server.log");
 
 	std::unordered_map<std::string, std::function<void(Vector4& input)>> processors = {
 		{"bool", 
 			[](Vector4& vec)
 			{
-				std::string x = std::to_string(!std::any_cast<bool>(vec.getX()));
-				std::string y = std::to_string(!std::any_cast<bool>(vec.getY()));
-				std::string z = std::to_string(!std::any_cast<bool>(vec.getZ()));
-				std::string w = std::to_string(!std::any_cast<bool>(vec.getW()));
+				auto data = vec.getData();
+				std::string x = std::to_string(!std::any_cast<bool>(data[0]));
+				std::string y = std::to_string(!std::any_cast<bool>(data[1]));
+				std::string z = std::to_string(!std::any_cast<bool>(data[2]));
+				std::string w = std::to_string(!std::any_cast<bool>(data[3]));
 				vec.setData(x, y, z, w);
 			}
 		},
 		{"string", 
 			[](Vector4& vec)
 			{
-				auto x = std::any_cast<std::string>(vec.getX());
+				auto data = vec.getData();
+				auto x = std::any_cast<std::string>(data[0]);
 				toUpper(x);
-				auto y = std::any_cast<std::string>(vec.getY());
+				auto y = std::any_cast<std::string>(data[1]);
 				toUpper(y);
-				auto z = std::any_cast<std::string>(vec.getZ());
+				auto z = std::any_cast<std::string>(data[2]);
 				toUpper(z);
-				auto w = std::any_cast<std::string>(vec.getW());
+				auto w = std::any_cast<std::string>(data[3]);
 				toUpper(w);
 				vec.setData(x, y, z, w);
 			}
@@ -72,7 +74,7 @@ int main()
 
 	int socket_creation_result = (server_fd = socket(AF_INET, SOCK_STREAM, 0));
 	if (socket_creation_result == 0) {
-		log<LogLevel::FATAL>(logger, "Socket creation failed");
+		log<LogLevel::FATAL>("Socket creation failed");
         std::cerr << "Socket creation failed\n";
         return -1;
     }
@@ -89,18 +91,18 @@ int main()
 
 	// NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
 	if (bind(server_fd, reinterpret_cast<struct sockaddr*>(&address), sizeof(address)) < 0) {
-		log<LogLevel::FATAL>(logger, "Bind failed");
+		log<LogLevel::FATAL>("Bind failed");
         std::cerr << "Bind failed\n";
         return -1;
     }
 
 	if (listen(server_fd, 3) < 0) {
-		log<LogLevel::FATAL>(logger, "Listen failed");
+		log<LogLevel::FATAL>("Listen failed");
         std::cerr << "Listen failed\n";
         return -1;
     }
 
-	log<LogLevel::INFO>(logger, std::format("Server listening on port {}", kPort));
+	log<LogLevel::INFO>(std::format("Server listening on port {}", kPort));
 	std::cout << "Server listening on port " << kPort << "\n";
 
 	int client_accept_result = (
@@ -108,12 +110,12 @@ int main()
 		client_fd = accept(server_fd, reinterpret_cast<struct sockaddr*>(&address), reinterpret_cast<socklen_t*>(&addrlen))
 	);
 	if (client_accept_result < 0) {
-		log<LogLevel::FATAL>(logger, "Accept failed");
+		log<LogLevel::FATAL>("Accept failed");
         std::cerr << "Accept failed\n";
         return -1;
     }
     
-	log<LogLevel::INFO>(logger, "Client connected");
+	log<LogLevel::INFO>("Client connected");
     std::cout << "Client connected!\n";
 
     while (true) {
@@ -123,16 +125,16 @@ int main()
         
         if (bytes_read <= 0) {
             if (bytes_read == 0) {
-				log<LogLevel::INFO>(logger, "Client connected");
+				log<LogLevel::INFO>("Client connected");
                 std::cout << "Client disconnected\n";
             } else {
-				log<LogLevel::ERROR>(logger, "Read error");
+				log<LogLevel::ERROR>("Read error");
                 std::cerr << "Read error\n";
             }
             break;
         }
         
-		log<LogLevel::DEBUG>(logger, std::format("Recieved: {}", buffer.data()));
+		log<LogLevel::DEBUG>(std::format("Recieved: {}", buffer.data()));
         std::cout << "Received: " << buffer.data() << "\n";
         
 		Vector4 vec;
@@ -144,15 +146,15 @@ int main()
         std::string response = vec.serialize();
         send(client_fd, response.c_str(), response.length(), 0);
 
-		log<LogLevel::DEBUG>(logger, std::format("Sent: {}", response));
+		log<LogLevel::DEBUG>(std::format("Sent: {}", response));
         std::cout << "Sent: " << response << "\n";
 
     }
 
 	close(client_fd);
-	log<LogLevel::DEBUG>(logger, "Closed client socket");
+	log<LogLevel::DEBUG>("Closed client socket");
 	close(server_fd);
-	log<LogLevel::DEBUG>(logger, "Closed server socket");
+	log<LogLevel::DEBUG>("Closed server socket");
 
 	return 0;
 }

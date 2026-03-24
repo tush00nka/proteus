@@ -34,12 +34,8 @@ public:
         _output_lines.push_back(text);
     }
     
-    [[nodiscard]] std::vector<std::string> getOutput() const {
+    [[nodiscard]] const std::vector<std::string>& getOutput() const {
         return _output_lines;
-    }
-    
-    void clearOutput() {
-        _output_lines.clear();
     }
     
     bool hasMoreInput() const {

@@ -2,81 +2,117 @@
 #include "accessibility.h"
 #include "address.h"
 #include "client.h"
+#include "console_interface.h"
 #include "data_pool.h"
 #include "logger.h"
 #include "vector4.h"
 #include <cstddef>
 #include <cstdio>
+#include <memory>
+#include <ranges>
 #include <string>
 #include <vector>
 #include <algorithm>
 
-MenuItem::MenuItem(command command) : _command(std::move(command)) {};
+bool Help::execute(const std::vector<std::string_view>&  /*args*/)
+{	
+	// IConsole& console = *_console;
+    _console->print("\033[2J\033[1;1H"); // clear the console
 
-bool MenuItem::execute(std::vector<std::string_view>& command_args, Options& opts, DataPool& data, IConsole& console, Logger& logger, TCPClient& client)
-{
-	this->_command(data, command_args, opts, console, logger, client);
+	_console->printLine("\n═══════════════════════════════════════════════════════════════════════");
+	_console->printLine("  GENERAL COMMANDS");
+	_console->printLine("═══════════════════════════════════════════════════════════════════════");
+	_console->printLine("  quit                    exit the application");
+	_console->printLine("  help                    show this help");
+	_console->printLine("  username [USERNAME]     set username");
+
+	_console->printLine("\n═══════════════════════════════════════════════════════════════════════");
+	_console->printLine("  VECTOR OPERATIONS");
+	_console->printLine("═══════════════════════════════════════════════════════════════════════");
+	_console->printLine("  type [TYPE NAME]        set type of vector in front of the queue");
+	_console->printLine("  vec X Y Z W             set values for a 4D vector in front of the queue");
+	_console->printLine("  add [TYPE] X Y Z W      add a 4D vector of TYPE to the queue");
+	_console->printLine("  send                    send vector to server for processing");
+
+	_console->printLine("\n═══════════════════════════════════════════════════════════════════════");
+	_console->printLine("  TESTING");
+	_console->printLine("═══════════════════════════════════════════════════════════════════════");
+	_console->printLine("  test [ADDRESS|PATH] [PORT...|FILE...]");
+	_console->printLine("                          perform ResourceTest or ConnectionTest");
+
+	_console->printLine("\n═══════════════════════════════════════════════════════════════════════");
+	_console->printLine("  SUPPORTED TYPES: int, uint, float, double, char, string, bool");
+	_console->printLine("═══════════════════════════════════════════════════════════════════════");
 	return true;
 }
 
-Menu::Menu()
-{
-	this->_items = {
-		{"quit", MenuItem(quitProgram)},
-		{"q", MenuItem(quitProgram)},
-		{"exit", MenuItem(quitProgram)},
-		
-		{"help", MenuItem(help)},
-		{"username", MenuItem(setUsername)},
-		{"type", MenuItem(inputType)},
-		{"vec", MenuItem(inputVec)},
-		{"add", MenuItem(addVec)},
-		{"pop", MenuItem(popVec)},
-		{"test", MenuItem(testAccessibility)},
-		{"send", MenuItem(sendToServer)}
-	};
+bool Quit::execute(const std::vector<std::string_view>&  /*args*/) {
+	_options->setShouldExit();
+	return true;
 }
+
+bool SetUsername::execute(const std::vector<std::string_view>&  args) {
+	if (args.size() <= 1)
+	{
+		const std::string message = std::format("Currently set username: {}", _options->getUsername()); 
+		_console->printLine(message);
+		log<LogLevel::INFO>(message); 
+		return true;
+	}
+
+	std::string_view name = args[1];
+	_options->setUsername(name);
+	
+	const std::string message = std::format("Changed username to: {}", name); 	
+	_console->printLine(message);
+	log<LogLevel::INFO>(message);
+
+	return true;
+}
+
+// Menu::Menu(std::shared_ptr<IConsole> console)
+// {
+// 	this->_items = {
+// 		// {"test", MenuItem(testAccessibility)},
+// 	};
+// }
 
 bool Menu::exists(std::string_view command_text)
 {
-	return this->_items.contains(command_text);
+	return this->_items.contains(std::string(command_text));
 }
 
-bool Menu::execute(std::string_view command_text, std::vector<std::string_view>& command_args, Options& opts, DataPool& data, IConsole& console, Logger& logger, TCPClient& client)
+bool Menu::execute(std::string_view command_text, const std::vector<std::string_view>& args)
 {
-	return this->_items[command_text].execute(command_args, opts, data, console, logger, client);
+	log<LogLevel::INFO>(std::format("Executing command {}...", command_text));
+	return this->_items[std::string(command_text)]->execute(args);
 }
 
-int runApplication(Options& opts, DataPool& data, IConsole& console, Logger& logger) {
-	Menu menu = Menu();
+int runApplication(const std::shared_ptr<Options>& opts, const std::shared_ptr<IConsole>& console)
+{
+	std::shared_ptr<DataPool> data = std::make_shared<DataPool>();
 
-	TCPClient client = TCPClient();
-	Address addr = opts.getAddress();
-	if(!client.connect(addr, logger))
+	Menu menu (data, console, opts);
+
+	Address addr = opts->getAddress();
+
+	while(!opts->getShouldExit())
 	{
-		log<LogLevel::ERROR>(logger, "Could not connect to server");
-	}
+		console->print(std::format("{} > ", opts->getUsername()));
 
-	while(!opts.getShouldExit())
-	{
-		console.print(std::format("{} > ", opts.getUsername()));
+		std::string line = console->readLine();
 
-		std::string line = console.readLine();
-
-		log<LogLevel::USER_INPUT>(logger, line);
+		log<LogLevel::USER_INPUT>(line);
 
 		std::vector<std::string_view> command_args;
 
 		std::string_view sv(line);
-		size_t start = 0;
-		size_t end = sv.find(' ');
-		while (end != std::string_view::npos)
-		{
-			command_args.push_back(sv.substr(start, end - start));
-			start = end + 1;
-			end = sv.find(' ', start);
-		}
-		command_args.push_back(sv.substr(start));
+
+		command_args = sv | std::views::split(' ')
+						| std::views::transform([](auto&& r) {
+							return std::string_view(r.begin(), r.end());
+						})
+						| std::ranges::to<std::vector<std::string_view>>();
 
 		if (command_args.empty())
 		{
@@ -85,102 +121,125 @@ int runApplication(Options& opts, DataPool& data, IConsole& console, Logger& log
 
 		for (auto arg : command_args)
 		{
-			log<LogLevel::DEBUG>(logger, arg);
+			log<LogLevel::DEBUG>(arg);
 		}
 		
 		std::string command{command_args[0].data(), command_args[0].length()};
 
 		if (!menu.exists(command))
 		{
-			console.printLine("Unknown command! For list of available commands type 'help'");
+			console->printLine("Unknown command! For list of available commands type 'help'");
 			continue;
 		}
 
-		menu.execute(command, command_args, opts, data, console, logger, client);
+		if (!menu.execute(command, command_args)) {
+			log<LogLevel::ERROR>(std::format("Command '{}' executed with error", command));
+			console->printLine(std::format("Command '{}' executed with error", command));
+			continue;
+		}
 	}
 
-	log<LogLevel::INFO>(logger, std::format("App finished with status {}", opts.getStatus()));
+	log<LogLevel::INFO>(std::format("App finished with status {}", opts->getStatus()));
 
-	return opts.getStatus();
+	return opts->getStatus();
 }
 
-void inputType(DataPool& data, std::vector<std::string_view>& commandArgs, Options&  /*opts*/, IConsole& console, Logger& logger, TCPClient&  /*client*/)
+bool InputType::execute(const std::vector<std::string_view>& args)
 {
-	if (commandArgs.size() <= 1)
+	if (0 >= _data_pool->size()) {
+		const std::string message = "Empty queue! No vector to work with!";
+		_console->printLine(message);
+		log<LogLevel::ERROR>(message);
+		return false;
+	}
+	
+	if (args.size() <= 1)
 	{
-		console.printLine("Currently set type: " + data.frontMut().getType()); 
-		log<LogLevel::INFO>(logger, "Currently set type: " + data.frontMut().getType()); 
-		return;
+		_console->printLine("Currently set type: " + _data_pool->front().getType()); 
+		log<LogLevel::INFO>("Currently set type: " + _data_pool->front().getType()); 
+		return false;
 	}
 
-	const std::string_view& type = commandArgs[1];
+	const std::string_view& type = args[1];
 
-	if (data.frontMut().supportsType(type))
+	if (_data_pool->front().setType(type))
 	{
-		data.frontMut().setType(type);
-		console.printLine(std::format("Set type: {}", type));
-		log<LogLevel::INFO>(logger, std::format("Set type: {}", type));
+		_console->printLine(std::format("Set type: {}", type));
+		log<LogLevel::INFO>(std::format("Set type: {}", type));
 	}
 	else
 	{
-		console.printLine("Unknown type! Supported types are:"); 
-		log<LogLevel::ERROR>(logger, std::format("Unknown type: {}", type));
-		for (const auto& t : data.frontMut().getSupporedTypes()) {
-			console.printLine("  " + t);
+		_console->printLine("Unknown type! Supported types are:"); 
+		log<LogLevel::ERROR>(std::format("Unknown type: {}", type));
+		for (const auto& t : _data_pool->front().getSupporedTypes()) {
+			_console->printLine("  " + t);
 		}
 	}
+
+	return true;
 }
 
-void inputVec(DataPool& data, std::vector<std::string_view>& commandArgs, Options&  /*opts*/, IConsole& console, Logger& logger, TCPClient&  /*client*/)
+bool InputVec::execute(const std::vector<std::string_view>& commandArgs)
 {
+	if (0 >= _data_pool->size()) {
+		const std::string message = "Empty queue! No vector to work with!";
+		_console->printLine(message);
+		log<LogLevel::ERROR>(message);
+		return false;
+	}
+
 	if (commandArgs.size() == 1)
 	{
-		data.frontMut().print(console);
-		return;
+		_console->printLine(_data_pool->front().sprint());
+		return true;
 	}
 
 	if (kInputVectorArgc < commandArgs.size())
 	{
-		log<LogLevel::WARNING>(logger, "Too many arguments! Input will be shrunk down to " + std::to_string(kInputVectorArgc-1) + " arguments!");
+		log<LogLevel::WARNING>("Too many arguments! Input will be shrunk down to " + std::to_string(kInputVectorArgc-1) + " arguments!");
 	}
 
 	if (kInputVectorArgc > commandArgs.size())
 	{
 		const std::string error_message = "Not enough arguments!";
-		console.printLine(error_message);
-		log<LogLevel::ERROR>(logger, error_message);
-		return;
+		_console->printLine(error_message);
+		log<LogLevel::ERROR>(error_message);
+		return false;
 	}
 
-	if (data.frontMut().setData(commandArgs[1], commandArgs[2], commandArgs[3], commandArgs[4]))
+	if (_data_pool->front().setData(commandArgs[1], commandArgs[2], commandArgs[3], commandArgs[4]))
 	{
 		const std::string message = "Vector data updated!";
-		console.printLine(message);
-		log<LogLevel::INFO>(logger, message);
-		data.frontMut().print(console);
+		_console->printLine(message);
+		log<LogLevel::INFO>(message);
+		_console->printLine(_data_pool->front().sprint());
+
+		return true;
 	}
+
+	return false;
 }
 
-void addVec(DataPool& data, std::vector<std::string_view>& commandArgs, Options&  /*opts*/, IConsole& console, Logger& logger, TCPClient&  /*client*/)
+bool AddVec::execute(const std::vector<std::string_view>& commandArgs)
 {
 	if (kInputVectorArgc > commandArgs.size())
 	{
 		const std::string error_message = "Not enough arguments!";
-		console.printLine(error_message);
-		log<LogLevel::ERROR>(logger, error_message);
-		return;
+		_console->printLine(error_message);
+		log<LogLevel::ERROR>(error_message);
+		return false;
 	}
 
 	if (kAddVectorArgc < commandArgs.size())
 	{
-		log<LogLevel::WARNING>(logger, "Too many arguments! Input will be shrunk down to " + std::to_string(kInputVectorArgc-1) + " arguments!");
+		log<LogLevel::WARNING>("Too many arguments! Input will be shrunk down to " + std::to_string(kInputVectorArgc-1) + " arguments!");
 	}
 
 	std::string type;
 	size_t offset = 0; 
 	if (kAddVectorArgc > commandArgs.size())
 	{
-		type = data.frontMut().getType();
+		type = _data_pool->front().getType();
 	}
 	else
 	{	
@@ -188,113 +247,65 @@ void addVec(DataPool& data, std::vector<std::string_view>& commandArgs, Options&
 		offset = 1;
 	}
 
-	data.push(Vector4());
+	_data_pool->push(Vector4());
 
-	if (data.frontMut().supportsType(type))
+	if (_data_pool->front().setType(type))
 	{
-		data.frontMut().setType(type);
-		console.printLine("Set type: " + type);
+		_console->printLine("Set type: " + type);
 	}
 	else
 	{
-		console.printLine("Unknown type! Supported types are:"); 
-		for (const auto& t : data.frontMut().getSupporedTypes()) {
-			console.printLine("  " + t);
+		_console->printLine("Unknown type! Supported types are:"); 
+		for (const auto& t : _data_pool->front().getSupporedTypes()) {
+			_console->printLine("  " + t);
 		}
-		return;
+		return false;
 	}
 
-	if (data.frontMut().setData(commandArgs[1+offset], commandArgs[2+offset], commandArgs[3+offset], commandArgs[4+offset]))
+	if (_data_pool->front().setData(commandArgs[1+offset], commandArgs[2+offset], commandArgs[3+offset], commandArgs[4+offset]))
 	{
-		const std::string message = "Vector of type " + data.frontMut().getType() + " has been added!";
-		console.printLine(message);
-		log<LogLevel::INFO>(logger, message);
-		data.frontMut().print(console);
-	}
-}
-
-void popVec(DataPool& data, std::vector<std::string_view>&  /*commandArgs*/, Options&  /*opts*/, IConsole& console, Logger& logger, TCPClient&  /*client*/)
-{
-	if (1 >= data.size())
-	{
-		const std::string error_message = "Cannot pop the last vector from queue!"; 
-		console.printLine(error_message);
-		log<LogLevel::ERROR>(logger, error_message);
-		return;
-	}
-
-	const std::string message = "Popped vector" + data.frontMut().sprint() + " of type " + data.frontMut().getType(); 
-	console.printLine(message);
-	log<LogLevel::INFO>(logger, message);
-	data.pop();
-}
-
-void help(DataPool&  /*data*/, std::vector<std::string_view>&  /*commandArgs*/, Options&  /*opts*/, IConsole& console, Logger&  /*logger*/, TCPClient&  /*client*/)
-{
-	clear(console);
-	console.printLine("\n═══════════════════════════════════════════════════════════════════════");
-	console.printLine("  GENERAL COMMANDS");
-	console.printLine("═══════════════════════════════════════════════════════════════════════");
-	console.printLine("  quit                    exit the application");
-	console.printLine("  help                    show this help");
-	console.printLine("  username [USERNAME]     set username");
-
-	console.printLine("\n═══════════════════════════════════════════════════════════════════════");
-	console.printLine("  VECTOR OPERATIONS");
-	console.printLine("═══════════════════════════════════════════════════════════════════════");
-	console.printLine("  type [TYPE NAME]        set type of vector in front of the queue");
-	console.printLine("  vec X Y Z W             set values for a 4D vector in front of the queue");
-	console.printLine("  add [TYPE] X Y Z W      add a 4D vector of TYPE to the queue");
-	console.printLine("  send                    send vector to server for processing");
-
-	console.printLine("\n═══════════════════════════════════════════════════════════════════════");
-	console.printLine("  TESTING");
-	console.printLine("═══════════════════════════════════════════════════════════════════════");
-	console.printLine("  test [ADDRESS|PATH] [PORT...|FILE...]");
-	console.printLine("                          perform ResourceTest or ConnectionTest");
-
-	console.printLine("\n═══════════════════════════════════════════════════════════════════════");
-	console.printLine("  SUPPORTED TYPES: int, uint, float, double, char, string, bool");
-	console.printLine("═══════════════════════════════════════════════════════════════════════");
-}
-
-void quitProgram(DataPool&  /*data*/, std::vector<std::string_view>&  /*commandArgs*/, Options&  opts, IConsole& /* console */, Logger& logger, TCPClient&  /*client*/)
-{
-	log<LogLevel::INFO>(logger, "Asked program to exit");
-	opts.setShouldExit();
-}
-
-void setUsername(DataPool&  /*data*/, std::vector<std::string_view>& commandArgs, Options& opts, IConsole& console, Logger& logger, TCPClient&  /*client*/)
-{
-	if (commandArgs.size() <= 1)
-	{
-		const std::string message = std::format("Currently set username: {}", opts.getUsername()); 
-		console.printLine(message);
-		log<LogLevel::INFO>(logger, message); 
-		return;
-	}
-
-	std::string_view name = commandArgs[1];
-	opts.setUsername(name);
+		const std::string message = "Vector of type " + _data_pool->front().getType() + " has been added!";
+		_console->printLine(message);
+		log<LogLevel::INFO>(message);
+		_console->printLine(_data_pool->front().sprint());
 	
-	const std::string message = std::format("Changed username to: {}", name); 	
-	console.printLine(message);
-	log<LogLevel::INFO>(logger, message);
+		return true;
+	}
+
+	return false;
 }
 
-void testAccessibility(DataPool & /*data*/, std::vector<std::string_view>& commandArgs, Options & /*opts*/, IConsole &console, Logger &logger, TCPClient&  /*client*/)
+bool PopVec::execute(const std::vector<std::string_view>& /*args*/)
 {
-	if (commandArgs.size() < 3)
+	if (0 >= _data_pool->size())
+	{
+		const std::string error_message = "Nothing to pop!"; 
+		_console->printLine(error_message);
+		log<LogLevel::ERROR>(error_message);
+		return false;
+	}
+
+	const std::string message = "Popped vector" + _data_pool->front().sprint() + " of type " + _data_pool->front().getType(); 
+	_console->printLine(message);
+	log<LogLevel::INFO>(message);
+	_data_pool->pop();
+
+	return true;
+}
+
+bool TestAccessibility::execute(const std::vector<std::string_view>& args)
+{
+	if (args.size() < 3)
 	{
 		const std::string& message = "Not enough arguments!";
-		log<LogLevel::ERROR>(logger, message);
-		console.printLine(message);
-		return;
+		log<LogLevel::ERROR>(message);
+		_console->printLine(message);
+		return false;
 
 	}
 
 	bool connection_test = false;
-	if (std::ranges::count(commandArgs[1], '/') <= 0) // if the are no '/', we think of the first argument as an ip-address, otherwise it's a file path
+	if (std::ranges::count(args[1], '/') <= 0) // if the are no '/', we think of the first argument as an ip-address, otherwise it's a file path
 	{
 		connection_test = true;
 	}
@@ -303,10 +314,10 @@ void testAccessibility(DataPool & /*data*/, std::vector<std::string_view>& comma
 
 	values.insert(
 		values.end(),
-		std::make_move_iterator(commandArgs.begin() + 2),
-		std::make_move_iterator(commandArgs.end())
+		std::make_move_iterator(args.begin() + 2),
+		std::make_move_iterator(args.end())
 	);
-	commandArgs.erase(commandArgs.begin() + 2, commandArgs.end());
+	// args.erase(args.begin() + 2, args.end());
 
 
 	if (connection_test)
@@ -314,7 +325,7 @@ void testAccessibility(DataPool & /*data*/, std::vector<std::string_view>& comma
 		ConnectionTest test = ConnectionTest();
 		
 		std::string result;
-		if (test.check(commandArgs[1], values, logger))
+		if (test.check(args[1], values))
 		{
 			result = "There are available ports!";
 		}
@@ -322,14 +333,14 @@ void testAccessibility(DataPool & /*data*/, std::vector<std::string_view>& comma
 		{
 			result = "All ports are unavailable :(";
 		}
-		console.printLine(result);
+		_console->printLine(result);
 	}
 	else
 	{
 		ResourceTest test = ResourceTest();
 
 		std::string result;
-		if (test.check(commandArgs[1], values, logger))
+		if (test.check(args[1], values))
 		{
 			result = "All files are found!";
 		} 
@@ -337,22 +348,54 @@ void testAccessibility(DataPool & /*data*/, std::vector<std::string_view>& comma
 			result = "Some files are missing!";
 		}
 
-		console.printLine("ResourceTest result: " + result);
+		_console->printLine("ResourceTest result: " + result);
 	}
+
+	return true;
 }
 
-void sendToServer(DataPool &data, std::vector<std::string_view>& /*commandArgs*/, Options & /*opts*/, IConsole &console, Logger &logger, TCPClient&  client)
+bool Send::execute(const std::vector<std::string_view>&  /*args*/)
 {
-	std::string response = client.sendAndRecieve(data.frontMut().serialize(), logger); 
+	TCPClient client {};
 
-	if (data.frontMut().deserialize(response))
+	Address addr = _options->getAddress();
+	if (!client.connect(addr)) {
+		const std::string message = "Connection to server failed!";
+		_console->printLine(message);
+		log<LogLevel::ERROR>(message);
+		return false;
+	}
+
+		if (0 >= _data_pool->size())
 	{
-		console.printLine("Recieved processed vector: " + data.frontMut().sprint());
-		log<LogLevel::INFO>(logger, "Recieved processed vector: " + data.frontMut().sprint());
+		const std::string message = "Empty queue! No vector to send!";
+		_console->printLine(message);
+		log<LogLevel::ERROR>(message);
+		return false;
+	}
+
+	std::string to_send = _data_pool->front().serialize();
+
+	if (to_send.empty())
+	{
+		const std::string message = "Trying to send empty string!";
+		_console->printLine(message);
+		log<LogLevel::ERROR>(message);
+		return false;
+	}
+
+	std::string response = client.sendAndRecieve(to_send); 
+
+	if (_data_pool->front().deserialize(response))
+	{
+		_console->printLine("Recieved processed vector: " + _data_pool->front().sprint());
+		log<LogLevel::INFO>("Recieved processed vector: " + _data_pool->front().sprint());
 	}
 	else
 	{
-		console.printLine("Failed to deserialize server response");
-		log<LogLevel::ERROR>(logger, "Failed to deserialize server response: " + response);
+		_console->printLine("Failed to deserialize server response");
+		log<LogLevel::ERROR>("Failed to deserialize server response: " + response);
 	}
+
+	return true;
 }
