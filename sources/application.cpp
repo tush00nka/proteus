@@ -393,8 +393,8 @@ bool Send::execute(const std::vector<std::string_view>&  /*args*/)
 	}
 	else
 	{
-		_console->printLine("Failed to deserialize server response");
-		log<LogLevel::ERROR>("Failed to deserialize server response: " + response);
+		_console->printLine("Recieved response: " + response);
+		log<LogLevel::ERROR>("Recieved response: " + response);
 	}
 
 	return true;

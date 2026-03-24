@@ -41,14 +41,14 @@ public:
 
 		if (inet_pton(AF_INET, address_string.c_str(), &serv_addr.sin_addr) <= 0) {
 			log<LogLevel::ERROR>("Invalid address: " + address_string);
-            close(_sock);
+            disconnect();
             return false;
         }
 
 		// NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
 		if (::connect(_sock, reinterpret_cast<struct sockaddr*>(&serv_addr), sizeof(serv_addr)) < 0) {
 			log<LogLevel::ERROR>("Connection failed to " + address_string + ":" + std::to_string(address.getPort()));	
-			close(_sock);
+			disconnect();
             return false;
         }
 

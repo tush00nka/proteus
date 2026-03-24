@@ -1,7 +1,0 @@
-2026-03-23 00:36:53.735427986.735 [INFO] 139697662465920 Server listening on port 8080 [/home/tushonka/Programming/cpp/proteus/sources/server.cpp:105]
-2026-03-23 00:36:55.752817721.752 [INFO] 139697662465920 Client connected [/home/tushonka/Programming/cpp/proteus/sources/server.cpp:118]
-2026-03-23 00:36:56.923097553.923 [DEBUG] 139697662465920 Recieved: { "type": "int", "x": 0, "y": 0, "z": 0, "w": 0 } [/home/tushonka/Programming/cpp/proteus/sources/server.cpp:137]
-2026-03-23 00:36:56.923393771.923 [DEBUG] 139697662465920 Sent: { "type": "int", "x": 2, "y": -2, "z": 0, "w": 0 } [/home/tushonka/Programming/cpp/proteus/sources/server.cpp:149]
-2026-03-23 00:37:01.062869397.062 [INFO] 139697662465920 Client connected [/home/tushonka/Programming/cpp/proteus/sources/server.cpp:128]
-2026-03-23 00:37:01.063125618.063 [DEBUG] 139697662465920 Closed client socket [/home/tushonka/Programming/cpp/proteus/sources/server.cpp:155]
-2026-03-23 00:37:01.063201382.063 [DEBUG] 139697662465920 Closed server socket [/home/tushonka/Programming/cpp/proteus/sources/server.cpp:157]
