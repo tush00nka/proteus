@@ -239,7 +239,15 @@ bool AddVec::execute(const std::vector<std::string_view>& commandArgs)
 	size_t offset = 0; 
 	if (kAddVectorArgc > commandArgs.size())
 	{
-		type = _data_pool->front().getType();
+		if (0 < _data_pool->size())
+		{
+			type = _data_pool->front().getType();
+		} else
+		{
+			log<LogLevel::ERROR>("Can't automatically get vector's type from previous one as the queue is empty!");
+			_console->printLine("Can't automatically get vector's type from previous one as the queue is empty!");
+			return false;
+		}
 	}
 	else
 	{	
