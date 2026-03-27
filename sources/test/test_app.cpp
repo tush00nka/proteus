@@ -17,7 +17,7 @@ TEST(ApplicationTest, HelpCommand) {
     auto output = console->getOutput();
     bool found_help = false;
     for (const auto& line : output) {
-        if (line.find("COMMANDS") != std::string::npos) {
+        if (line.contains("COMMANDS")) {
             found_help = true;
             break;
         }
@@ -39,7 +39,7 @@ TEST(ApplicationTest, SetVectorType) {
     auto output = console->getOutput();
     bool found_type = false;
     for (const auto& line : output) {
-        if (line.find("Set type: float") != std::string::npos) {
+        if (line.contains("Set type: float")) {
             found_type = true;
             break;
         }
@@ -61,7 +61,7 @@ TEST(ApplicationTest, ViewCurrentType) {
     auto output = console->getOutput();
     bool found_type = false;
     for (const auto& line : output) {
-        if (line.find("Currently set type: float") != std::string::npos) {
+        if (line.contains("Currently set type: float")) {
             found_type = true;
             break;
         }
@@ -83,7 +83,7 @@ TEST(ApplicationTest, SetVectorValues) {
     auto output = console->getOutput();
     bool found_update = false;
     for (const auto& line : output) {
-        if (line.find("Vector data updated!") != std::string::npos) {
+        if (line.contains("Vector data updated!")) {
             found_update = true;
             break;
         }
@@ -117,7 +117,7 @@ TEST(ApplicationTest, UnknownCommand) {
     auto output = console->getOutput();
     bool found_error = false;
     for (const auto& line : output) {
-        if (line.find("Unknown command!") != std::string::npos) {
+        if (line.contains("Unknown command!")) {
             found_error = true;
             break;
         }
@@ -153,7 +153,7 @@ TEST(ApplicationTest, IncompleteVecCommand) {
     auto output = console->getOutput();
     bool found_error = false;
     for (const auto& line : output) {
-        if (line.find("Not enough arguments!") != std::string::npos) {
+        if (line.contains("Not enough arguments!")) {
             found_error = true;
             break;
         }
