@@ -5,7 +5,6 @@
 #include "console_interface.h"
 #include "data_pool.h"
 #include "logger.h"
-#include "vector4.h"
 #include <cstddef>
 #include <cstdio>
 #include <memory>
@@ -244,8 +243,8 @@ bool AddVec::execute(const std::vector<std::string_view>& commandArgs)
 			type = _data_pool->front().getType();
 		} else
 		{
-			log<LogLevel::ERROR>("Can't automatically get vector's type from previous one as the queue is empty!");
-			_console->printLine("Can't automatically get vector's type from previous one as the queue is empty!");
+			log<LogLevel::ERROR>("Not enough arguments! (can't automatically get vector's type from previous one as the queue is empty)");
+			_console->printLine("Not enough arguments! (can't automatically get vector's type from previous one as the queue is empty)");
 			return false;
 		}
 	}
@@ -255,7 +254,7 @@ bool AddVec::execute(const std::vector<std::string_view>& commandArgs)
 		offset = 1;
 	}
 
-	_data_pool->push(Vector4());
+	_data_pool->emplace();
 
 	if (_data_pool->front().setType(type))
 	{
