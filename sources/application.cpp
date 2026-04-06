@@ -27,6 +27,7 @@ bool Help::execute(const std::vector<std::string_view>&  /*args*/)
 	_console->printLine("  quit                    exit the application");
 	_console->printLine("  help                    show this help");
 	_console->printLine("  username [USERNAME]     set username");
+	_console->printLine("  move [POSITION]         set UE position");
 
 	_console->printLine("\n═══════════════════════════════════════════════════════════════════════");
 	_console->printLine("  VECTOR OPERATIONS");

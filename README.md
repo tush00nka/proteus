@@ -1,6 +1,6 @@
 # Proteus
 
-CLI application for Protei IT-School
+SMS-Center model for Protei Ordinate Task
 
 # Quick Start
 
@@ -14,14 +14,9 @@ cmake .. && make
 ## Run Client
 
 ```sh
-./proteus -a 127.0.0.1 -p 8080
+./proteus -a 127.0.0.1 -p 8080 --msisdn 89991112233 --imsi 12345601112233 --imei 158863118273320 -x 100
 ```
 
-or 
-
-```sh
-./proteus -a 127.0.0.1:8080
-```
 
 ## Run Server
 ```sh
@@ -40,21 +35,10 @@ ctest ./proteus_tests
 # Crucial Parameters
 - -a ADDRESS
 - -p PORT
+- --msisdn MSISDN
+- --imsi IMSI
+- --imei IMEI
 
 # TODO:
-- [x] Logging
-- [x] CppCheck
-- [x] Address Sanitizer
-- [x] ResourceTest
-- [x] ConnectionTest
-- [ ] Class invariants
-	- [x] Descriptions
-	- [ ] Checkers
-- [x] Templates?
-- [ ] Better test coverage
-- [x] Better Address and cli args parsing
-- [ ] HEX Address support
-- [x] Server-side data processing
-- [x] Logger for Server
-- [ ] Benchmarking
-- [x] Multithreaded server
+- [x] New CLI arguments parsing for UE
+- [x] Move command
