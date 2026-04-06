@@ -7,9 +7,12 @@
 #include "logger.h"
 #include <cstddef>
 #include <cstdio>
+#include <exception>
+#include <format>
 #include <memory>
 #include <ranges>
 #include <string>
+#include <string_view>
 #include <vector>
 #include <algorithm>
 
@@ -45,12 +48,14 @@ bool Help::execute(const std::vector<std::string_view>&  /*args*/)
 	return true;
 }
 
-bool Quit::execute(const std::vector<std::string_view>&  /*args*/) {
-	_options->setShouldExit();
+bool Quit::execute(const std::vector<std::string_view>&  /*args*/)
+{
+	*this->_should_exit = true;
 	return true;
 }
 
-bool SetUsername::execute(const std::vector<std::string_view>&  args) {
+bool SetUsername::execute(const std::vector<std::string_view>&  args)
+{
 	if (args.size() <= 1)
 	{
 		const std::string message = std::format("Currently set username: {}", _options->getUsername()); 
@@ -69,12 +74,28 @@ bool SetUsername::execute(const std::vector<std::string_view>&  args) {
 	return true;
 }
 
-// Menu::Menu(std::shared_ptr<IConsole> console)
-// {
-// 	this->_items = {
-// 		// {"test", MenuItem(testAccessibility)},
-// 	};
-// }
+bool Move::execute(const std::vector<std::string_view>& args)
+{
+	try 
+	{
+		int new_position = std::stoi(std::string(args.back()));
+		this->_options->setPosition(new_position);
+
+		const std::string msg = std::format("Set new position: {}", this->_options->getPosition());
+		this->_console->printLine(msg);
+		log<LogLevel::INFO>(msg);
+
+		return true;
+	}
+	catch (std::exception& e)
+	{
+		const std::string msg = std::format("Failed to set position: {}", e.what());
+		this->_console->printLine(msg);
+		log<LogLevel::ERROR>(msg);
+		return false;
+	}
+	return true;
+}
 
 bool Menu::exists(std::string_view command_text)
 {
@@ -87,7 +108,12 @@ bool Menu::execute(std::string_view command_text, const std::vector<std::string_
 	return this->_items[std::string(command_text)]->execute(args);
 }
 
-int runApplication(const std::shared_ptr<Options>& opts, const std::shared_ptr<IConsole>& console)
+bool Menu::getShouldExit() const
+{
+	return *this->_should_exit;
+}
+
+void runApplication(const std::shared_ptr<Options>& opts, const std::shared_ptr<IConsole>& console)
 {
 	std::shared_ptr<DataPool> data = std::make_shared<DataPool>();
 
@@ -95,7 +121,7 @@ int runApplication(const std::shared_ptr<Options>& opts, const std::shared_ptr<I
 
 	Address addr = opts->getAddress();
 
-	while(!opts->getShouldExit())
+	while(!menu.getShouldExit())
 	{
 		console->print(std::format("{} > ", opts->getUsername()));
 
@@ -137,10 +163,6 @@ int runApplication(const std::shared_ptr<Options>& opts, const std::shared_ptr<I
 			continue;
 		}
 	}
-
-	log<LogLevel::INFO>(std::format("App finished with status {}", opts->getStatus()));
-
-	return opts->getStatus();
 }
 
 bool InputType::execute(const std::vector<std::string_view>& args)

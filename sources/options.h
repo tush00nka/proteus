@@ -4,29 +4,26 @@
 
 class Options {
 private:
-	std::optional<Address> _address; // _port is included in Address class
-	std::string _role;
-	std::size_t _index;
-	std::string _lib;
+	Address _address; // _port is included in Address class
+	std::string _msisdn;
+	std::string _imei;
+	std::string _imsi;
+	int _position = 0; // one-dimensional 
 
 	std::string _username;
 
-	bool _should_exit;
-	int _status;
-
 	static void usage(std::string_view program_name);
 public:
-	Options(int argc, char ** argv);
-	void errorWithMessage(std::string_view program_name, std::string_view message);
+	Options() = default;
+	bool parseArguments(int argc, char ** argv);
+	static void errorWithMessage(std::string_view program_name, std::string_view message);
 
 	[[nodiscard]] std::string_view getUsername() const { return this->_username; }
 	void setUsername(std::string_view username) { this->_username = username; }
 
-	[[nodiscard]] bool getShouldExit() const { return this->_should_exit; }
-	void setShouldExit() { this->_should_exit = !this->_should_exit; }
+	[[nodiscard]] Address getAddress() const;
 	
-	[[nodiscard]] int getStatus() const { return this->_status; }
-	void setStatus(int status) { this->_status = status; }
-
-	Address getAddress() const;
+	// bool just in case if we need to make checks or ensure constraints
+	bool setPosition(int newPosition);
+	int getPosition() const { return this->_position; }
 };

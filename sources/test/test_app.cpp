@@ -5,7 +5,7 @@
 #include "mock_console.h"
 
 TEST(ApplicationTest, HelpCommand) {
-	std::shared_ptr<Options> opts = std::make_shared<Options>(0, nullptr);
+	std::shared_ptr<Options> opts = std::make_shared<Options>();
     DataPool data;
     std::shared_ptr<MockConsole> console = std::make_shared<MockConsole>();    
     
@@ -27,7 +27,7 @@ TEST(ApplicationTest, HelpCommand) {
 
 TEST(ApplicationTest, SetVectorType) {
 
-	std::shared_ptr<Options> opts = std::make_shared<Options>(0, nullptr);
+	std::shared_ptr<Options> opts = std::make_shared<Options>();
 	std::shared_ptr<MockConsole> console = std::make_shared<MockConsole>(); 
     
 	console->addInputLine("add int 1 2 3 4");
@@ -49,7 +49,7 @@ TEST(ApplicationTest, SetVectorType) {
 
 TEST(ApplicationTest, ViewCurrentType) {
 	
-	std::shared_ptr<Options> opts = std::make_shared<Options>(0, nullptr);
+	std::shared_ptr<Options> opts = std::make_shared<Options>();
 	std::shared_ptr<MockConsole> console = std::make_shared<MockConsole>(); 
     
 	console->addInputLine("add float 1 2 3 4");
@@ -71,7 +71,7 @@ TEST(ApplicationTest, ViewCurrentType) {
 
 TEST(ApplicationTest, SetVectorValues) {
 
-	std::shared_ptr<Options> opts = std::make_shared<Options>(0, nullptr);
+	std::shared_ptr<Options> opts = std::make_shared<Options>();
 	std::shared_ptr<MockConsole> console = std::make_shared<MockConsole>(); 
 
 	console->addInputLine("add float 1 2 3 4");
@@ -93,7 +93,7 @@ TEST(ApplicationTest, SetVectorValues) {
 
 TEST(ApplicationTest, ChangeUsername) {
 
-	std::shared_ptr<Options> opts = std::make_shared<Options>(0, nullptr);
+	std::shared_ptr<Options> opts = std::make_shared<Options>();
     std::shared_ptr<MockConsole> console = std::make_shared<MockConsole>();  
 
     console->addInputLine("username admin");
@@ -106,7 +106,7 @@ TEST(ApplicationTest, ChangeUsername) {
 
 TEST(ApplicationTest, UnknownCommand) {
 
-	std::shared_ptr<Options> opts = std::make_shared<Options>(0, nullptr);
+	std::shared_ptr<Options> opts = std::make_shared<Options>();
     std::shared_ptr<MockConsole> console = std::make_shared<MockConsole>();    
     
     console->addInputLine("unknown_command");
@@ -129,7 +129,7 @@ TEST(ApplicationTest, EmptyInput) {
 
     
 
-	std::shared_ptr<Options> opts = std::make_shared<Options>(0, nullptr);
+	std::shared_ptr<Options> opts = std::make_shared<Options>();
     std::shared_ptr<MockConsole> console = std::make_shared<MockConsole>();
     
     console->addInputLine("");
@@ -142,7 +142,7 @@ TEST(ApplicationTest, EmptyInput) {
 
 TEST(ApplicationTest, IncompleteVecCommand) {
 
-	std::shared_ptr<Options> opts = std::make_shared<Options>(0, nullptr);
+	std::shared_ptr<Options> opts = std::make_shared<Options>();
     std::shared_ptr<MockConsole> console = std::make_shared<MockConsole>();
     
     console->addInputLine("add int 1 2 3"); // Less args than needed

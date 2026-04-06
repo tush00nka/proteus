@@ -1,6 +1,5 @@
 #include <cstdio>
 #include <iostream>
-#include <optional>
 #include <print>
 #include <span>
 #include "options.h"
@@ -13,9 +12,10 @@ void Options::usage(std::string_view program_name)
 	std::println("{} [OPTIONS]", program_name);
 	std::println("\t-a ADDRESS");
 	std::println("\t-p PORT");
-	std::println("\t-r ROLE");
-	std::println("\t-i INDEX");
-	std::println("\t-L LIB");
+	std::println("\t-x POSITION");
+	std::println("\t--msisdn MSISDN");
+	std::println("\t--imei IMEI");
+	std::println("\t--imsi IMSI");
 }
 
 void Options::errorWithMessage(std::string_view program_name, std::string_view message)
@@ -23,13 +23,13 @@ void Options::errorWithMessage(std::string_view program_name, std::string_view m
 	log<LogLevel::FATAL>(message);
 	std::cout << message << '\n';
 	usage(program_name);
-
-	_should_exit = true;
-	_status = 1;
 }
 
-Options::Options(int argc, char ** argv) : _address(std::nullopt), _status(0), _should_exit(false)
+bool Options::parseArguments(int argc, char ** argv)
 {
+	bool got_address = false;
+	bool got_port = false;
+
 	for (size_t i = 1; i < argc; ++i)
 	{
 		auto args = std::span(argv, argc);
@@ -38,14 +38,14 @@ Options::Options(int argc, char ** argv) : _address(std::nullopt), _status(0), _
 		if (i+1 >= argc)
 		{
 			errorWithMessage(args[0], "Flag `"+arg+"` doesn't seem to have a valid option set!");
-			break;
+			return false;
 		}
 
 		std::string next_arg = args[i+1];
 		if(next_arg.starts_with('-'))
 		{
 			errorWithMessage(args[0], "Flag `"+arg+"` doesn't seem to have a valid option set!");
-			break;
+			return false;
 		}
 
 		if (arg == "-a")
@@ -69,60 +69,89 @@ Options::Options(int argc, char ** argv) : _address(std::nullopt), _status(0), _
 			log<LogLevel::DEBUG>(std::format("Got {} Address parts: {}", counter-1, address_accum));
 
 			this->_address = (Address(address_accum));
-			log<LogLevel::INFO>("Address is set to: "+this->_address->sprint());
+			log<LogLevel::INFO>("Address is set to: "+this->_address.sprint());
 			i+=counter-1;
+
+			got_address = true;
 
 			continue;
 		}
 
 		if (arg == "-p")
 		{
-			if (this->_address == std::nullopt)
-			{
-				this->_address = Address();
-			}
-
 			try
 			{
-				this->_address->setPort(std::stoi(args[i+1]));
+				this->_address.setPort(std::stoi(args[i+1]));
 			}
 			catch(std::exception& e)
 			{
 				errorWithMessage(args[0], std::format("Failed to parse `-p` flag argument: {}", e.what()));
-				break;
+				return false;
 			}	
 
-			log<LogLevel::INFO>("Address is set to: "+this->_address->sprint()+" (via -p flag)");
+			log<LogLevel::INFO>("Address is set to: "+this->_address.sprint()+" (via -p flag)");
+			i++;
+			
+			got_port = true;
+
+			continue;
+		}
+
+		if (arg == "-x")
+		{
+			try
+			{
+				this->_position = std::stoi(args[i+1]);
+			}
+			catch(std::exception& e)
+			{
+				errorWithMessage(args[0], std::format("Failed to parse `-x` flag argument: {}", e.what()));
+				return false;
+			}	
+
+			log<LogLevel::INFO>(std::format("Position is set to: {}", this->_position));
 			i++;
 			
 			continue;
 		}
 
-		if (arg == "-r")
+		if (arg == "--msisdn")
 		{
-			this->_role = args[i+1];
-			i++;
-			continue;
-		}	
-
-		if (arg == "-i")
-		{
-			try
-			{
-				this->_index = std::stoi(args[i+1]);
+			if (std::string(args[i+1]).starts_with('-')) {
+				errorWithMessage(args[0], "Argument for flag `--imei` was not provided");
+				return false;
 			}
-			catch(std::exception& e)
-			{
-				errorWithMessage(args[0], std::format("Failed to parse `-i` flag argument: {}", e.what()));
-				break;
-			}	
+
+			this->_msisdn = args[i+1];
+			log<LogLevel::INFO>("MSISDN is set to: "+this->_msisdn);
 			i++;
 			continue;
 		}
 
-		if (arg == "-L")
+
+		if (arg == "--imei")
 		{
-			this->_lib = args[i+1];
+			if (std::string(args[i+1]).starts_with('-')) {
+				errorWithMessage(args[0], "Argument for flag `--imei` was not provided");
+				return false;
+			}
+
+			this->_msisdn = args[i+1];
+			log<LogLevel::INFO>("IMEI is set to: "+this->_msisdn);
+			i++;
+			continue;
+		}
+
+
+		if (arg == "--imsi")
+		{
+			if (std::string(args[i+1]).starts_with('-')) {
+				errorWithMessage(args[0], "Argument for flag `--imei` was not provided");
+				return false;
+			}
+
+			this->_msisdn = args[i+1];
+			log<LogLevel::INFO>("IMIS is set to: "+this->_msisdn);
 			i++;
 			continue;
 		}
@@ -131,24 +160,25 @@ Options::Options(int argc, char ** argv) : _address(std::nullopt), _status(0), _
 		std::string program_name = args[0];
 		usage(program_name);
 	
-		_should_exit = true;
-		_status = 1;
-		break;
+		return false;
 	}
 
-	if (this->_address == std::nullopt)
+	if (!got_address || !got_port)
 	{
-		log<LogLevel::WARNING>("Address (-a) and/or Port (-p) are not set");
-		this->_address = Address();
+		log<LogLevel::ERROR>("Address (-a) and/or Port (-p) are not set");
+		return false;
 	}
 
-	if (this->_role.size() <= 0)
-	{
-		this->_role = "Client";
-	}
+	return true;
 }
 
 Address Options::getAddress() const
 {
-	return *this->_address;
+	return this->_address;
+}
+
+bool Options::setPosition(int newPosition) 
+{
+	this->_position = newPosition;
+	return true;
 }
