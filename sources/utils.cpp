@@ -2,7 +2,8 @@
 #include <any>
 #include <cctype>
 #include <iostream>
-#include <sstream>
+#include <ranges>
+
 #include "utils.h"
 
 std::ostream& operator<<(std::ostream& os, const std::any& value) {
@@ -41,17 +42,16 @@ std::ostream& operator<<(std::ostream& os, const std::any& value) {
     return os << "unknown_type(" << value.type().name() << ")";
 }
 
-std::vector<std::string> split(std::string_view value, char delim) {
-	std::vector<std::string> tokens {};
-
-	std::istringstream token_stream((std::string(value)));
-	std::string token;
-	while(std::getline(token_stream, token, delim))
-	{
-		tokens.push_back(token);
-	}
-
-	return tokens;
+std::vector<std::string_view> split(std::string_view sv, char delim) {
+    return sv
+        | std::views::split(delim)
+        | std::views::transform(
+            [](auto&& r)
+                {
+                    return std::string_view(r.begin(), r.end());
+                }
+            )
+        | std::ranges::to<std::vector<std::string_view>>();
 }
 
 // Trim from start (left)

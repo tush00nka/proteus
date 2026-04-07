@@ -76,12 +76,12 @@ bool ConnectionTest::check(std::string_view address, std::vector<std::string>& p
 
 bool ResourceTest::check(std::string_view path, std::vector<std::string>& filenames) 
 {
-	std::unordered_map<std::string, size_t> appearances; 
+	std::unordered_map<std::string_view, size_t> appearances; 
 
 	for (const auto & entry : std::filesystem::directory_iterator(path))
 	{
         const std::string full_path = entry.path();		
-		std::vector<std::string> tokens = split(full_path, '/');
+		std::vector<std::string_view> tokens = split(full_path, '/');
 		
 		appearances[tokens[tokens.size()-1]]++;
 	}

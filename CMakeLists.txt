@@ -6,7 +6,6 @@ set(CMAKE_CXX_STANDARD 23)
 set(SOURCES
 	sources/application.cpp
     sources/options.cpp 
-    sources/vector4.cpp
 	sources/utils.cpp
 	sources/accessibility.cpp
 	sources/address.cpp
@@ -15,12 +14,13 @@ set(SOURCES
 
 add_executable(proteus 
     sources/main.cpp 
+	sources/ue.cpp
 	${SOURCES}
 )
 
 add_executable(proteus_server
-	sources/server.cpp
-	sources/vector4.cpp
+	sources/server/server.cpp
+	sources/server/mme.cpp
 	sources/utils.cpp
 	sources/logger.cpp
 )
@@ -30,6 +30,7 @@ find_package(GTest REQUIRED)
 
 add_executable(proteus_tests 
     sources/test/test_app.cpp
+	sources/ue.cpp
 	${SOURCES}
 )
 
@@ -40,6 +41,7 @@ add_test(NAME ProteusTests COMMAND proteus_tests)
 
 add_executable(proteus_asan     
 	sources/main.cpp 
+	sources/ue.cpp
 	${SOURCES}
 )
 

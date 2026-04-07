@@ -1,4 +1,5 @@
 #include "address.h"
+#include "utils.h"
 #include <cstdint>
 
 #pragma once
@@ -6,9 +7,9 @@
 class Options {
 private:
 	Address _address; // _port is included in Address class
-	std::uint64_t _msisdn;
-	std::uint64_t _imei;
-	std::uint64_t _imsi;
+	MSISDN _msisdn;
+	IMEI _imei;
+	IMSI _imsi;
 	int _position = 0; // one-dimensional 
 
 	std::string _username;
@@ -26,5 +27,8 @@ public:
 	
 	// bool just in case if we need to make checks or ensure constraints
 	bool setPosition(int newPosition);
-	int getPosition() const { return this->_position; }
+	[[nodiscard]] int getPosition() const { return this->_position; }
+	[[nodiscard]] MSISDN getMSISDN() const { return this->_msisdn; }
+	[[nodiscard]] IMEI getIMEI() const { return this->_imei; }
+	[[nodiscard]] IMSI getIMSI() const { return this->_imsi; }
 };

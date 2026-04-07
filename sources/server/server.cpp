@@ -3,6 +3,8 @@
 #include <cstring>
 #include <functional>
 #include <iostream>
+#include <memory>
+#include <mutex>
 #include <queue>
 #include <string>
 #include <sys/socket.h>
@@ -10,26 +12,14 @@
 #include <thread>
 #include <unistd.h>
 #include <arpa/inet.h>
-#include <unordered_map>
 
-#include "logger.h"
-#include "utils.h"
-#include "vector4.h"
+#include "../logger.h"
+#include "enodeb.h"
+#include "mme.h"
 
 const int kPort = 8080;
 const int kBufferSize = 1024;
 const int kMaxClients = 4;
-
-template <typename T>
-static void doMath(Vector4& vec)
-{
-	auto data = vec.getData();
-	auto x = std::to_string(std::any_cast<T>(data[0]) + 2);
-	auto y = std::to_string(std::any_cast<T>(data[1]) - 2);
-	auto z = std::to_string(std::any_cast<T>(data[2]) * 2);
-	auto w = std::to_string(std::any_cast<T>(data[3]) / 2);	
-	vec.setData(x, y, z, w);
-}
 
 class ThreadPool {
 private:
@@ -95,10 +85,14 @@ public:
 class ClientHandler {
 private:
     int _client_fd;
-    std::unordered_map<std::string, std::function<void(Vector4&)>>* _processors;
+    std::shared_ptr<MME> _mme;
+    std::shared_ptr<std::vector<std::shared_ptr<ENodeB>>> _enbs; // the so-called баребух
+    TMSI _my_tmsi = 0;
+    int _current_enodeb_id = -1;
+    std::mutex _mux;
 public:
-    ClientHandler(int clientFd, std::unordered_map<std::string, std::function<void(Vector4&)>>* processors)
-        : _client_fd(clientFd), _processors(processors) {}
+    ClientHandler(int clientFd, MME& mme, std::vector<std::shared_ptr<ENodeB>>& enbs)
+        : _client_fd(clientFd), _mme(std::make_shared<MME>(mme)), _enbs(std::make_shared<std::vector<std::shared_ptr<ENodeB>>>(enbs)) {}
     
     void handle()
 	{
@@ -124,33 +118,75 @@ public:
                 break;
             }
             
-            log<LogLevel::DEBUG>(std::format("Received: {}", buffer.data()));
-            std::cout << "Received: " << buffer.data() << "\n";
-            
-            Vector4 vec;
-            vec.deserialize(std::string(buffer.data()));
-            
-            // Process vector according to type
-            if (_processors->contains(vec.getType()))
-			{
-                _processors->at(vec.getType())(vec);
-            } else
-			{
-                log<LogLevel::ERROR>(std::format("Unknown type: {}", vec.getType()));
-                std::cerr << "Unknown type: " << vec.getType() << "\n";
+            const std::string msg = std::format("Received: {}", buffer.data());
+            log<LogLevel::INFO>(msg);
+
+            std::string_view sv(buffer.data());
+
+            auto parts = split(sv, '|');
+
+            if (parts.empty())
+            {
+                continue;
             }
-            
-            std::string response = vec.serialize();
-            send(_client_fd, response.c_str(), response.length(), 0);
-            
-            log<LogLevel::DEBUG>(std::format("Sent: {}", response));
-            std::cout << "Sent: " << response << "\n";
+
+            // R|IMSI|POS
+            if (parts[0] == "R")
+            {
+                IMSI imsi = std::stoull(std::string(parts[1]));  // TODO(tushonka): handle exception properly
+                int position = std::stoi(std::string(parts[2])); // TODO(tushonka): handle exception properly
+
+                std::string response;
+                for (const auto& enb : *_enbs)
+                {
+                    double signal_stength = enb->signalStrength(position);
+                    response += std::format("{}|{}|", enb->_id, signal_stength);
+                }
+                send(_client_fd, response.c_str(), response.length(), 0);
+                log<LogLevel::INFO>(std::format("Sent: {}", response));
+                continue;
+            }
+
+            // A|IMSI|IMEI|MSISDN|enb_id
+            if (parts[0] == "A")
+            {
+                IMSI imsi = std::stoull(std::string(parts[1]));      // TODO(tushonka): handle exception properly
+                IMEI imei = std::stoull(std::string(parts[2]));      // TODO(tushonka): handle exception properly
+                MSISDN msisdn = std::stoull(std::string(parts[3]));  // TODO(tushonka): handle exception properly
+                int enb_id = std::stoi(std::string(parts[4]));       // TODO(tushonka): handle exception properly
+                std::lock_guard<std::mutex> lock(_mux);
+
+                // TODO(tushonka) not sure if we need the position at this point
+                _my_tmsi = _mme->registerSubscriber(imsi, imei, msisdn, enb_id, 0, _client_fd); 
+
+                std::string response = "TMSI|" + std::to_string(_my_tmsi);
+                send(_client_fd, response.c_str(), response.length(), 0);
+                log<LogLevel::INFO>(std::format("Sent: {}", response));
+                continue;
+            }
+
+            if (parts[0] == "OFF")
+            {
+                log<LogLevel::DEBUG>(std::format("parts[0]: {}", parts[0]));
+
+                std::lock_guard<std::mutex> lock(_mux);
+                _mme->unregister(_my_tmsi);
+                std::string response = "OFF_OK";
+                send(_client_fd, response.c_str(), response.length(), 0);
+                log<LogLevel::INFO>(std::format("Sent: {}", response));
+                break;
+            }
+
+            // TODO(tushonka): other messages here
         }
         
         close(_client_fd);
         log<LogLevel::DEBUG>("Closed client socket");
     }
 };
+
+const std::uint32_t kENodeBRadius = 120;
+const int kENodeBPosition = 100;
 
 int main()
 {
@@ -162,39 +198,10 @@ int main()
 	Logger::init("proteus_server.log", true);
 	Logger::clear("proteus_server.log");
 
-	std::unordered_map<std::string, std::function<void(Vector4& input)>> processors = {
-		{"bool", 
-			[](Vector4& vec)
-			{
-				auto data = vec.getData();
-				std::string x = std::to_string(!std::any_cast<bool>(data[0]));
-				std::string y = std::to_string(!std::any_cast<bool>(data[1]));
-				std::string z = std::to_string(!std::any_cast<bool>(data[2]));
-				std::string w = std::to_string(!std::any_cast<bool>(data[3]));
-				vec.setData(x, y, z, w);
-			}
-		},
-		{"string", 
-			[](Vector4& vec)
-			{
-				auto data = vec.getData();
-				auto x = std::any_cast<std::string>(data[0]);
-				toUpper(x);
-				auto y = std::any_cast<std::string>(data[1]);
-				toUpper(y);
-				auto z = std::any_cast<std::string>(data[2]);
-				toUpper(z);
-				auto w = std::any_cast<std::string>(data[3]);
-				toUpper(w);
-				vec.setData(x, y, z, w);
-			}
-		},
-		{"char", doMath<char>},
-		{"int", doMath<int>},
-		{"uint", doMath<uint>},
-		{"float", doMath<float>},
-		{"double", doMath<double>},
-	};
+    MME mme;
+    std::shared_ptr<ENodeB> enodeb1 =  std::make_shared<ENodeB>(1, -kENodeBPosition, kENodeBRadius);
+    std::shared_ptr<ENodeB> enodeb2 =  std::make_shared<ENodeB>(2, kENodeBPosition, kENodeBRadius);
+    std::vector<std::shared_ptr<ENodeB>> enbs = {enodeb1, enodeb2};
 
 	int socket_creation_result = (server_fd = socket(AF_INET, SOCK_STREAM, 0));
 	if (socket_creation_result == 0)
@@ -267,8 +274,8 @@ int main()
         log<LogLevel::INFO>(std::format("Client connected. Active connections: {}", active_connections.load()));
         std::cout << "Client connected! Active connections: " << active_connections<< "\n";
         
-		thread_pool.enqueue([client_fd, &processors, &active_connections, &cout_mutex]() {
-            ClientHandler handler(client_fd, &processors);
+		thread_pool.enqueue([client_fd, &mme, &enbs, &active_connections, &cout_mutex]() {
+            ClientHandler handler(client_fd, mme, enbs);
             handler.handle();
             
             active_connections--;

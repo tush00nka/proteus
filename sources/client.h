@@ -109,7 +109,7 @@ public:
         return response;
     }
 
-	std::string sendAndRecieve(const std::string& message)
+	std::string sendAndReceive(const std::string& message)
 	{
 		if (sendMessage(message))
 		{
