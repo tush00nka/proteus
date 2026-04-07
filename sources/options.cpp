@@ -1,7 +1,9 @@
 #include <cstdio>
+#include <exception>
 #include <iostream>
 #include <print>
 #include <span>
+#include <string>
 #include "options.h"
 #include "address.h"
 #include "logger.h"
@@ -122,8 +124,16 @@ bool Options::parseArguments(int argc, char ** argv)
 				return false;
 			}
 
-			this->_msisdn = args[i+1];
-			log<LogLevel::INFO>("MSISDN is set to: "+this->_msisdn);
+			try
+			{
+				this->_msisdn = std::stoull(args[i+1]);
+				log<LogLevel::INFO>(std::format("MSISDN is set to: {}", this->_msisdn));
+			} 
+			catch (std::exception& e)
+			{
+				errorWithMessage(args[0], std::format("Failed to parse `--msisdn` flag argument: {}", e.what()));
+				return false;
+			}
 			i++;
 			continue;
 		}
@@ -136,8 +146,16 @@ bool Options::parseArguments(int argc, char ** argv)
 				return false;
 			}
 
-			this->_msisdn = args[i+1];
-			log<LogLevel::INFO>("IMEI is set to: "+this->_msisdn);
+			try
+			{
+				this->_imei = std::stoull(args[i+1]);
+				log<LogLevel::INFO>(std::format("IMEI is set to: {}", this->_imei));
+			} 
+			catch (std::exception& e)
+			{
+				errorWithMessage(args[0], std::format("Failed to parse `--imei` flag argument: {}", e.what()));
+				return false;
+			}
 			i++;
 			continue;
 		}
@@ -150,8 +168,16 @@ bool Options::parseArguments(int argc, char ** argv)
 				return false;
 			}
 
-			this->_msisdn = args[i+1];
-			log<LogLevel::INFO>("IMIS is set to: "+this->_msisdn);
+			try
+			{
+				this->_imsi = std::stoull(args[i+1]);
+				log<LogLevel::INFO>(std::format("IMSI is set to: {}", this->_imsi));
+			} 
+			catch (std::exception& e)
+			{
+				errorWithMessage(args[0], std::format("Failed to parse `--imsi` flag argument: {}", e.what()));
+				return false;
+			}
 			i++;
 			continue;
 		}

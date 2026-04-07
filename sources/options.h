@@ -1,13 +1,14 @@
 #include "address.h"
+#include <cstdint>
 
 #pragma once
 
 class Options {
 private:
 	Address _address; // _port is included in Address class
-	std::string _msisdn;
-	std::string _imei;
-	std::string _imsi;
+	std::uint64_t _msisdn;
+	std::uint64_t _imei;
+	std::uint64_t _imsi;
 	int _position = 0; // one-dimensional 
 
 	std::string _username;
