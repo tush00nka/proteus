@@ -154,8 +154,9 @@ public:
                 IMEI imei = std::stoull(std::string(parts[2]));      // TODO(tushonka): handle exception properly
                 MSISDN msisdn = std::stoull(std::string(parts[3]));  // TODO(tushonka): handle exception properly
                 int enb_id = std::stoi(std::string(parts[4]));       // TODO(tushonka): handle exception properly
+                
                 std::lock_guard<std::mutex> lock(_mux);
-
+                
                 // TODO(tushonka) not sure if we need the position at this point
                 _my_tmsi = _mme->registerSubscriber(imsi, imei, msisdn, enb_id, 0, _client_fd); 
 
